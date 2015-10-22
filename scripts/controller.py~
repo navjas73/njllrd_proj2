@@ -39,10 +39,9 @@ def move_to_point(point):
             limb.set_joint_velocities(joint_command)
 
 def move_to_initial_point(point):
-    current_pose = limb.endpoint_pose()   # current pose
-    new_pose     = limb.Point(point.x, point.y, point.z)
-    joints       = request_kinematics(new_pose, current_pose['orientation'],'left')
-    limb.move_to_joint_positions(joints)
+    ik
+    move to joint positions
+
 
 def command_handler(data):
     initial_point = data.points[0]
