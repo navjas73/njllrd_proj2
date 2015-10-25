@@ -47,6 +47,7 @@ waypoints.msg
 add_service_files(
 FILES
 request_endpoint.srv
+connect_waypoints.srv
 )
 ## Generate actions in the 'action' folder
 # add_action_files(
