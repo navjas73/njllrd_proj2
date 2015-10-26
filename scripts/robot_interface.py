@@ -19,6 +19,7 @@ from geometry_msgs.msg import (
     Point,
     Quaternion,
 )
+from time import sleep
 
 limb = None
 kinematics = None
@@ -26,7 +27,7 @@ joint_names = None
 tol         = None
 points = None
 
-def move_to_point(point):
+def move_to_point(initial_point,point):
 # if q_next in reachable_workspace 
 #while goal is not reached
 #get x0 from current position
@@ -34,29 +35,74 @@ def move_to_point(point):
 # get pseudoinverse
 # multiply pseudoinverse by desired velocity (J^*v_des) to get joint velocities
 # set joint velocities with set_joint_velocities
-    x_goal  = [point.x, point.y, point.z] 
+    x_init = numpy.array([initial_point.x, initial_point.y, initial_point.z])
+    x_goal  = numpy.array([point.x, point.y, point.z])
+    #correct stuff for feedback
+    #correct_vector = numpy.subtract(x_goal,x_init)
+    correct_vector = x_goal-x_init
+    correct_dist = numpy.linalg.norm(correct_vector)
+    correct_vector = correct_vector/correct_dist
+    print "x_init"
+    print x_init
+    print "x_goal"
+    print x_goal 
     at_goal = False
-    vel_mag = 0.1
+    vel_mag = 0.05
+    kp = 0.5
+
+    #uncomment when you don't want to recalculate position every time
+    #x0   = x_init
+    
+    theTime = rospy.Time
     while not at_goal:
+        #recalculating position every time
+        #comment when set position once
         x0   = limb.endpoint_pose()   # current pose
         x0   = x0['position']
-        x0 = [x0.x, x0.y, x0.z]
+        x0 = numpy.array([x0.x, x0.y, x0.z])
+        #print"x0"
+        #print x0
+        #print "x_goal"
+        #print x_goal
+
+        #uncomment when ready to try feedback stuff
+        '''
+        correct_x = correct_vector*vel_mag*theTime.now()+x_init
+        error = x0 - correct_x
+        error = error/numpy.linalg.norm(error)*kp'''
         
-        dist = numpy.linalg.norm(numpy.subtract(x_goal,x0))
+        #dist = numpy.linalg.norm(numpy.subtract(x_goal,x0))
+        dist = numpy.linalg.norm(x_goal-x0)
         if dist < tol:
             at_goal = True
             print "within tolerance"
             break
         else:
             # check if x_goal in reachable workspace
-            v_des         = numpy.subtract(x_goal,x0)/dist*vel_mag  
-            v_des = numpy.append(vdes, [0,0,0])  # calulate desired velocity, zero angular velocities
+
+            #uncomment for feedback stuff
+            #v_des         = numpy.subtract(x_goal,x0)/dist*vel_mag + error 
+
+            #v_des         = numpy.subtract(x_goal,x0)/dist*vel_mag
+            v_des = (x_goal-x0)/dist*vel_mag
+            v_des = numpy.append(v_des, [0,0,0])  # calculate desired velocity, zero angular velocities
             J_psuinv      = kinematics.jacobian_pseudo_inverse()
             print v_des
             print J_psuinv
-            q_dot         = numpy.dot(J_psuinv,v_des)
-            joint_command = {value:key for key in joint_names for value in q_dot[key]}
+            q_dot = numpy.dot(J_psuinv,v_des)
+            #q_dot = J_psuinv*v_des
+            q_dot = q_dot.tolist()
+            q_dot = q_dot[0]
+            print q_dot
+
+            #I don't think this did what we wanted it to
+            # joint_command = {key:value for key in joint_names for value in q_dot}
+
+            joint_command = dict(zip(joint_names,q_dot))
+            print joint_command
             limb.set_joint_velocities(joint_command)
+            #did this to try to set the rate of setting commands... didn't work
+            #sleep(0.01)
 
 def move_to_initial_point(point):
     current_pose = limb.endpoint_pose()   # current pose
@@ -77,7 +123,7 @@ def command_handler(data):
     print "initial_point"
     print initial_point
     move_to_initial_point(initial_point)
-    move_to_point(data.points.points[1])
+    move_to_point(initial_point,data.points.points[1])
     print "end of command handler"
     return True
 
