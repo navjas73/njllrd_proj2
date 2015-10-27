@@ -47,62 +47,69 @@ def move_to_point(initial_point,point):
     print "x_goal"
     print x_goal 
     at_goal = False
-    vel_mag = 0.05
-    kp = 0.5
+    vel_mag = 0.1
+    kp = 0.05
 
     #uncomment when you don't want to recalculate position every time
     #x0   = x_init
     
-    theTime = rospy.Time
+    time_initial = rospy.get_time();
+    deltaT  =  0;
     while not at_goal:
         #recalculating position every time
         #comment when set position once
         x0   = limb.endpoint_pose()   # current pose
         x0   = x0['position']
         x0 = numpy.array([x0.x, x0.y, x0.z])
-        #print"x0"
-        #print x0
-        #print "x_goal"
-        #print x_goal
+        print"x0"
+        print x0
+        print "x_goal"
+        print x_goal
 
         #uncomment when ready to try feedback stuff
-        '''
-        correct_x = correct_vector*vel_mag*theTime.now()+x_init
+        deltaT = rospy.get_time() - time_initial;
+        correct_x = correct_vector*vel_mag*deltaT+x_init
         error = x0 - correct_x
-        error = error/numpy.linalg.norm(error)*kp'''
+        error = error/numpy.linalg.norm(error)*kp
         
         #dist = numpy.linalg.norm(numpy.subtract(x_goal,x0))
         dist = numpy.linalg.norm(x_goal-x0)
         if dist < tol:
             at_goal = True
             print "within tolerance"
+            limb.exit_control_mode()
             break
         else:
             # check if x_goal in reachable workspace
 
             #uncomment for feedback stuff
-            #v_des         = numpy.subtract(x_goal,x0)/dist*vel_mag + error 
+            v_des         = (x_goal-x0)/dist*vel_mag - error 
 
-            #v_des         = numpy.subtract(x_goal,x0)/dist*vel_mag
-            v_des = (x_goal-x0)/dist*vel_mag
+            #v_des = (x_goal-x0)/dist*vel_mag
             v_des = numpy.append(v_des, [0,0,0])  # calculate desired velocity, zero angular velocities
             J_psuinv      = kinematics.jacobian_pseudo_inverse()
+            print "vdes"
             print v_des
+            print "jpsu"
             print J_psuinv
             q_dot = numpy.dot(J_psuinv,v_des)
             #q_dot = J_psuinv*v_des
             q_dot = q_dot.tolist()
             q_dot = q_dot[0]
+            print "qdot"
             print q_dot
 
             #I don't think this did what we wanted it to
             # joint_command = {key:value for key in joint_names for value in q_dot}
 
             joint_command = dict(zip(joint_names,q_dot))
+            print "joint_command"
             print joint_command
             limb.set_joint_velocities(joint_command)
+            print "joint velocities"
+            print limb.joint_velocities()
             #did this to try to set the rate of setting commands... didn't work
-            #sleep(0.01)
+            sleep(0.002)
 
 def move_to_initial_point(point):
     current_pose = limb.endpoint_pose()   # current pose
@@ -188,8 +195,8 @@ def robot_interface():
     global kinematics
     global joint_names
     global tol
-    tol         = 0.05
-    joint_names = ['*_s0', '*_s1', '*_e0', '*_e1', '*_w0', '*_w1', '*_w2']
+    tol         = 0.01
+    joint_names = ['left_s0', 'left_s1', 'left_e0', 'left_e1', 'left_w0', 'left_w1', 'left_w2']
     limb        = baxter_interface.Limb('left') #instantiate limb
     kinematics  = baxter_kinematics('left')
     global points
