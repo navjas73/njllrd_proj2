@@ -22,7 +22,7 @@ def controller():
     pointa.y = point1.endpoint.y
     pointa.z = point1.endpoint.z
 
-    points.points.append(pointa)
+    
 
     pointb = point()
     pointb.x = point2.endpoint.x
@@ -30,6 +30,7 @@ def controller():
     pointb.z = point2.endpoint.z
 
     points.points.append(pointb)
+    points.points.append(pointa)
     
     print points.points[0]
     print points.points[1]

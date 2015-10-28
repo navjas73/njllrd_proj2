@@ -5,8 +5,10 @@ import time
 from std_msgs.msg import String
 from std_msgs.msg import Header
 import baxter_interface
+import PyKDL
 from baxter_pykdl import baxter_kinematics
 import numpy
+
 from njllrd_proj2.srv import *
 from njllrd_proj2.msg import *
 from baxter_core_msgs.srv import (
@@ -47,8 +49,8 @@ def move_to_point(initial_point,point):
     print "x_goal"
     print x_goal 
     at_goal = False
-    vel_mag = 0.075
-    kp = 0.02
+    vel_mag = 0.1
+    kp = 0.05
 
     #uncomment when you don't want to recalculate position every time
     #x0   = x_init
@@ -111,7 +113,7 @@ def move_to_point(initial_point,point):
             #did this to try to set the rate of setting commands... didn't work
             sleep(0.002)
 
-def move_to_initial_point(point):
+'''def move_to_initial_point(point):
     current_pose = limb.endpoint_pose()   # current pose
     new_pose     = limb.Point(point.x, point.y, point.z)
     print "current_pose"
@@ -122,15 +124,14 @@ def move_to_initial_point(point):
     print "joints"
     print joints
     limb.move_to_joint_positions(joints)
-    print "moved to initial point"
+    print "moved to initial point"'''
 
 def command_handler(data):
-    initial_point = data.points.points[0]
-    points = data.points.points[1::]
-    print "initial_point"
-    print initial_point
-    move_to_initial_point(initial_point)
-    move_to_point(initial_point,data.points.points[1])
+    i = 0
+    for point in data.points.points:
+        if (i is not 0):
+            move_to_point(data.points.points[i-1],point)
+        i = i+1
     print "end of command handler"
     return True
 
@@ -138,11 +139,37 @@ def command_handler(data):
 def handle_request_endpoint(data):
     endpoint = limb.endpoint_pose() # add in offset for tool later
     endpoint_position = point()
+    q = endpoint['orientation']
+    endpoint_rotation = PyKDL.Rotation.Quaternion(q[0],q[1],q[2],q[3])
+    print "endpoint_rotation"
+    print endpoint_rotation
     endpoint_position.x = endpoint['position'][0]
     endpoint_position.y = endpoint['position'][1]
     endpoint_position.z = endpoint['position'][2]
-    
+    print endpoint_position
+    print "our rotation"
+    our_rotation = quaternion_to_rotation(q[0],q[1],q[2],q[3])
+    print our_rotation
+    offset_vector = numpy.array([0,0,.15])
+    rotated_offset = numpy.dot(our_rotation,offset_vector)
+    print "rotated offset"
+    print rotated_offset
+    endpoint_position.x = endpoint_position.x + rotated_offset[0,0]
+    print rotated_offset[0,0]
+    endpoint_position.y = endpoint_position.y + rotated_offset[0,1]
+    endpoint_position.z = endpoint_position.z + rotated_offset[0,2]
+
+    endpoint_position
+    print "offset_vector"
+    print offset_vector
     return endpoint_position
+
+
+def quaternion_to_rotation(qx,qy,qz,qw):
+    rotation_matrix = numpy.matrix([[1-2*qy**2-2*qz**2, 2*qx*qy-2*qz*qw, 2*qx*qz+2*qy*qw],[2*qx*qy+2*qz*qw, 1-2*qx**2-2*qz**2, 2*qy*qz-2*qx*qw],[2*qx*qz-2*qy*qw, 2*qy*qz+2*qx*qw, 1-2*qx**2-2*qy**2]])
+ 
+    return rotation_matrix
+
 
 
 def request_kinematics(position, quaternion, side):
