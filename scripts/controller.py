@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import rospy
 import time
+import math
+import numpy
 from njllrd_proj2.srv import *
 from njllrd_proj2.msg import *
 from std_msgs.msg import String
@@ -44,15 +46,35 @@ def controller():
         point1, point2, point3 = get_plane_points()
         points = waypoints()
 
-        pointa = make_point(point1)
-        pointb = make_point(point2)
-        pointc = make_point(point3)
 
-        points.points.append(pointa)
-        points.points.append(pointb)
-        points.points.append(pointc)
+        pointa = numpy.array([point1.endpoint.x, point1.endpoint.y, point1.endpoint.z])
+        pointb = numpy.array([point2.endpoint.x, point2.endpoint.y, point2.endpoint.z])
+        pointc = numpy.array([point3.endpoint.x, point3.endpoint.y, point3.endpoint.z])
+        
+        plane_vec = numpy.cross(pointa-pointb, pointb-pointc)
 
-        print points.points
+        plane_normal = plane_vec/numpy.linalg.norm(plane_vec)
+
+        R = make_rotation_matrix(plane_normal)
+
+
+
+        # connect <0,0,0> and <.2,.2,0>
+        #physical placement of 3 points on plane 
+        # pt2            pt1
+        # pt3
+
+        first_point = numpy.array([0,0,0])
+        second_point = numpy.array([.07,-.07,0])
+
+        first_point_rot = numpy.dot(R,first_point)
+        second_point_rot = numpy.dot(R,second_point)
+
+        first_point_rot_trans = first_point_rot + pointc
+        second_point_rot_trans = second_point_rot + pointc
+
+        points.points.append(make_point_from_array(first_point_rot_trans))
+        points.points.append(make_point_from_array(second_point_rot_trans))
         request = rospy.ServiceProxy('connect_waypoints', connect_waypoints)
         output = request(points)
 
@@ -66,6 +88,14 @@ def make_point(data):
     the_real_point.x = the_point.endpoint.x
     the_real_point.y = the_point.endpoint.y
     the_real_point.z = the_point.endpoint.z
+    return the_real_point
+
+def make_point_from_array(data):
+    the_point = data
+    the_real_point = point()
+    the_real_point.x = the_point[0]
+    the_real_point.y = the_point[1]
+    the_real_point.z = the_point[2]
     return the_real_point
 
 def handle_user_input(data):
@@ -133,6 +163,22 @@ def get_plane_points():
     #print (point1, point2, point3)
     return (point1, point2, point3)
     
+def make_rotation_matrix(plane_normal):
+    z = numpy.array([0, 0, 1])
+    k = numpy.cross(z,plane_normal)
+    kx = k[0]
+    ky = k[1]
+    kz = k[2]
+
+    theta = math.acos(numpy.dot(z,plane_normal))
+    v = 1-math.cos(theta)
+    c = math.cos(theta)
+    s = math.sin(theta)
+
+    R = numpy.array([[kx**2*v+c, kx*ky*v - kz*s, kx*kz*v + ky*s],[kx*kz*v + kz*s, ky**2*v + c, ky*kz*v - kx*s],[kx*kz*v - ky*s, ky*kz*v + kx*s, kz**2 * v +c]])
+    return R
+
+
 
 
 if __name__ == "__main__":
