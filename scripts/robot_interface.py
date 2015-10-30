@@ -28,6 +28,7 @@ kinematics = None
 joint_names = None
 tol         = None
 points = None
+tool_length = .15
 
 def move_to_point(initial_point,point):
 # if q_next in reachable_workspace 
@@ -49,8 +50,8 @@ def move_to_point(initial_point,point):
     print "x_goal"
     print x_goal 
     at_goal = False
-    vel_mag = 0.1
-    kp = 0.05
+    vel_mag = 0.02
+    kp = 0.5
 
     #uncomment when you don't want to recalculate position every time
     #x0   = x_init
@@ -61,18 +62,25 @@ def move_to_point(initial_point,point):
         #recalculating position every time
         #comment when set position once
         x0   = limb.endpoint_pose()   # current pose
+        x0orientation = x0['orientation']
         x0   = x0['position']
-        x0 = numpy.array([x0.x, x0.y, x0.z])
-        print"x0"
+        x0rotmax = quaternion_to_rotation(x0orientation[0],x0orientation[1],x0orientation[2],x0orientation[3])
+        # offset vector. Add rotated offset vector to x0 to get desired end effector position 
+        offset_vector = numpy.array([0,0,tool_length])
+        rotated_offset = numpy.dot(x0rotmax,offset_vector)
+
+        x0 = numpy.array([x0.x+rotated_offset[0,0], x0.y+rotated_offset[0,1], x0.z+rotated_offset[0,2]])
+
+        '''print"x0"
         print x0
         print "x_goal"
-        print x_goal
+        print x_goal'''
 
         #uncomment when ready to try feedback stuff
         deltaT = rospy.get_time() - time_initial;
         correct_x = correct_vector*vel_mag*deltaT+x_init
         error = x0 - correct_x
-        error = error/numpy.linalg.norm(error)*kp
+        error = error*kp
         
         #dist = numpy.linalg.norm(numpy.subtract(x_goal,x0))
         dist = numpy.linalg.norm(x_goal-x0)
@@ -92,14 +100,14 @@ def move_to_point(initial_point,point):
             J_psuinv      = kinematics.jacobian_pseudo_inverse()
             print "vdes"
             print v_des
-            print "jpsu"
-            print J_psuinv
+            '''print "jpsu"
+            print J_psuinv'''
             q_dot = numpy.dot(J_psuinv,v_des)
             #q_dot = J_psuinv*v_des
             q_dot = q_dot.tolist()
             q_dot = q_dot[0]
-            print "qdot"
-            print q_dot
+            '''print "qdot"
+            print q_dot'''
 
             #I don't think this did what we wanted it to
             # joint_command = {key:value for key in joint_names for value in q_dot}
@@ -108,11 +116,11 @@ def move_to_point(initial_point,point):
             print "joint_command"
             print joint_command
             limb.set_joint_velocities(joint_command)
-            print "joint velocities"
-            print limb.joint_velocities()
+            '''print "joint velocities"
+            print limb.joint_velocities()'''
             #did this to try to set the rate of setting commands... didn't work
             sleep(0.002)
-
+    return True
 '''def move_to_initial_point(point):
     current_pose = limb.endpoint_pose()   # current pose
     new_pose     = limb.Point(point.x, point.y, point.z)
@@ -130,7 +138,11 @@ def command_handler(data):
     i = 0
     for point in data.points.points:
         if (i is not 0):
-            move_to_point(data.points.points[i-1],point)
+            x = move_to_point(data.points.points[i-1],point)
+            print "move from point: "
+            print data.points.points[i-1]
+            print "to point: "
+            print point
         i = i+1
     print "end of command handler"
     return True
@@ -140,28 +152,28 @@ def handle_request_endpoint(data):
     endpoint = limb.endpoint_pose() # add in offset for tool later
     endpoint_position = point()
     q = endpoint['orientation']
-    endpoint_rotation = PyKDL.Rotation.Quaternion(q[0],q[1],q[2],q[3])
-    print "endpoint_rotation"
-    print endpoint_rotation
+    #endpoint_rotation = PyKDL.Rotation.Quaternion(q[0],q[1],q[2],q[3])
+    '''print "endpoint_rotation"
+    print endpoint_rotation'''
     endpoint_position.x = endpoint['position'][0]
     endpoint_position.y = endpoint['position'][1]
     endpoint_position.z = endpoint['position'][2]
-    print endpoint_position
-    print "our rotation"
+    '''print endpoint_position
+    print "our rotation"'''
     our_rotation = quaternion_to_rotation(q[0],q[1],q[2],q[3])
-    print our_rotation
-    offset_vector = numpy.array([0,0,.15])
+    '''print our_rotation'''
+    offset_vector = numpy.array([0,0,tool_length])
     rotated_offset = numpy.dot(our_rotation,offset_vector)
-    print "rotated offset"
-    print rotated_offset
+    '''print "rotated offset"
+    print rotated_offset'''
     endpoint_position.x = endpoint_position.x + rotated_offset[0,0]
-    print rotated_offset[0,0]
+    #print rotated_offset[0,0]
     endpoint_position.y = endpoint_position.y + rotated_offset[0,1]
     endpoint_position.z = endpoint_position.z + rotated_offset[0,2]
 
     endpoint_position
-    print "offset_vector"
-    print offset_vector
+    '''print "offset_vector"
+    print offset_vector'''
     return endpoint_position
 
 
