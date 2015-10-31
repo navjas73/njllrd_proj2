@@ -29,6 +29,7 @@ joint_names = None
 tol         = None
 points = None
 tool_length = .15
+joint_limits = None
 
 def move_to_point(initial_point,point):
 # if q_next in reachable_workspace 
@@ -55,6 +56,7 @@ def move_to_point(initial_point,point):
     kp = .5
     deltaT = 0
     x0last = x_init;
+    sleep_time = .002
     #uncomment when you don't want to recalculate position every time
     #x0   = x_init
     
@@ -78,7 +80,7 @@ def move_to_point(initial_point,point):
         print "x_goal"
         print x_goal'''
 
-        distTraveled = vel_mag*(deltaT);
+        distTraveled = numpy.linalg.norm(x0-x_init)
         '''distTraveled = distTraveled + numpy.linalg.norm(x0-x0last)/4
         print "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH"
         print numpy.linalg.norm(x0-x0last)
@@ -93,6 +95,8 @@ def move_to_point(initial_point,point):
         
         #dist = numpy.linalg.norm(numpy.subtract(x_goal,x0))
         dist = numpy.linalg.norm(x_goal-x0)
+        print distTraveled
+        print numpy.linalg.norm(x_goal-x_init)
         if distTraveled >= numpy.linalg.norm(x_goal - x_init):
             at_goal = True
             print "within tolerance"
@@ -102,21 +106,75 @@ def move_to_point(initial_point,point):
             # check if x_goal in reachable workspace
 
             #uncomment for feedback stuff
-            v_des = (((x_goal-x0)/dist - error)/numpy.linalg.norm((x_goal-x0)/dist - error))*vel_mag
+            v_des = (((x_goal-x0)/dist*vel_mag - error))
+            
 
             #v_des = (x_goal-x0)/dist*vel_mag
             v_des = numpy.append(v_des, [0,0,0])  # calculate desired velocity, zero angular velocities
-            J_psuinv      = kinematics.jacobian_pseudo_inverse()
+            J = kinematics.jacobian()
+            J_psuinv  = kinematics.jacobian_pseudo_inverse()
             #print "vdes"
             #print v_des
             '''print "jpsu"
             print J_psuinv'''
+            '''
+            for n in range(1,30):
+                b = numpy.random.rand(1,7)
+                print J_psuinv
+                print J
+                print numpy.dot(J_psuinv,J)
+                prod1 = numpy.dot(J_psuinv,v_des) 
+                print (numpy.identity(7)-numpy.dot(J_psuinv,J))
+                print numpy.dot((numpy.identity(7)-numpy.dot(J_psuinv,J)),b)
+                q_dot = numpy.dot(J_psuinv,v_des) + numpy.dot((numpy.identity(7)-numpy.dot(J_psuinv,J)),b)
+                q = limb.joint_angles()
+                q_current = numpy.array([0,0,0,0,0,0,0])
+                for key, value in q:
+                    if key == 'left_s0':
+                        q_current[0] = value
+                    elif key == 'left_s1':
+                        q_current[1] = value
+                    elif key == 'left_e0':
+                        q_current[2] = value
+                    elif key == 'left_e1':
+                        q_current[3] = value
+                    elif key == 'left_w0':
+                        q_current[4] = value
+                    elif key == 'left_w1':
+                        q_current[5] = value
+                    elif key == 'left_w2':
+                        q_current[6] = value
+
+                obj = 0
+                best_obj_value = 100000000
+                best_obj_b = 0
+
+                q_next = q_current+q_dot*sleep_time
+                high = joint_limits[:,1]
+                low = joint_limits[:,0]
+                obj = numpy.divide(1.0,numpy.power((high-qnext),2))+numpy.divide(1.0,numpy.power((low-qnext),2))
+                obj = obj + 1/(0-q_next[1]) + 1/(0-q_next[3]) + 1/(0-q_next[5])
+
+                if (obj < best_obj_value):
+                    best_obj_value = obj
+                    best_obj_b = b
+                    best_obj_qdot = q_dot
+
+
+
+
+
+
+
+
+            q_dot = best_obj_qdot
+            '''
             q_dot = numpy.dot(J_psuinv,v_des)
-            #q_dot = J_psuinv*v_des
+            
             q_dot = q_dot.tolist()
             q_dot = q_dot[0]
-            '''print "qdot"
-            print q_dot'''
+            print "qdot"
+            print q_dot
 
             #I don't think this did what we wanted it to
             # joint_command = {key:value for key in joint_names for value in q_dot}
@@ -128,7 +186,7 @@ def move_to_point(initial_point,point):
             '''print "joint velocities"
             print limb.joint_velocities()'''
             #did this to try to set the rate of setting commands... didn't work
-            sleep(0.002)
+            sleep(sleep_time)
             #x0last = x0 
     return True
 '''def move_to_initial_point(point):
@@ -239,7 +297,7 @@ def robot_interface():
     # If requested, returns endpoint pose
     s = rospy.Service('request_endpoint', request_endpoint, handle_request_endpoint)
 
-
+    global joint_limits
     global limb 
     global kinematics
     global joint_names
@@ -248,6 +306,9 @@ def robot_interface():
     joint_names = ['left_s0', 'left_s1', 'left_e0', 'left_e1', 'left_w0', 'left_w1', 'left_w2']
     limb        = baxter_interface.Limb('left') #instantiate limb
     kinematics  = baxter_kinematics('left')
+    joint_limits = numpy.array([[-2.461, .890],[-2.147,1.047],[-3.028,3.028],[-.052,2.618],[-3.059,3.059],[-1.571,2.094],[-3.059,3.059]])
+    max_joint_speeds = numpy.array([2.0,2.0,2.0,2.0,4.0,4.0,4.0])
+
     global points
     points = waypoints()
     rospy.spin()
