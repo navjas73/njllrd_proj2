@@ -8,6 +8,7 @@ import baxter_interface
 import PyKDL
 from baxter_pykdl import baxter_kinematics
 import numpy
+import random
 
 from njllrd_proj2.srv import *
 from njllrd_proj2.msg import *
@@ -30,6 +31,16 @@ tol         = None
 points = None
 tool_length = .15
 joint_limits = None
+
+def sample_point():
+    global joint_limits
+    new_config = numpy.array([])
+    for i in range(0,len(joint_limits)):
+        indv_joint_rand = random.uniform(joint_limits[i,:][1],joint_limits[i,:][2])
+        new_config = new_config.append(indv_joint_rand)
+
+
+
 
 def move_to_point(initial_point,point):
 # if q_next in reachable_workspace 
