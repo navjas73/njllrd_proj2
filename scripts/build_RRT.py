@@ -43,7 +43,7 @@ def RRT_handler(data):
     goal = data.startfinish.points[0]
     start = data.startfinish.points[1]
 
-    return data.points
+    return data.startfinish
 
 def build_RRT():
     rospy.init_node('build_RRT')
