@@ -64,19 +64,53 @@ def controller():
         # pt2            pt1
         # pt3
 
-        first_point = numpy.array([0,0,0])
-        second_point = numpy.array([.07,-.07,0])
+        #first_point = numpy.array([0,0,0])
+        #second_point = numpy.array([.07,-.07,0])
 
-        first_point_rot = numpy.dot(R,first_point)
-        second_point_rot = numpy.dot(R,second_point)
+        #first_point_rot = numpy.dot(R,first_point)
+        #second_point_rot = numpy.dot(R,second_point)
 
-        first_point_rot_trans = first_point_rot + pointc
-        second_point_rot_trans = second_point_rot + pointc
+        #first_point_rot_trans = first_point_rot + pointc
+        #second_point_rot_trans = second_point_rot + pointc
 
-        points.points.append(make_point_from_array(first_point_rot_trans))
-        points.points.append(make_point_from_array(second_point_rot_trans))
+        #points.points.append(make_point_from_array(first_point_rot_trans))
+        #points.points.append(make_point_from_array(second_point_rot_trans))
+        
+        
         request = rospy.ServiceProxy('connect_waypoints', connect_waypoints)
-        output = request(points)
+        
+        stroke_request = waypoints()
+        #Try to draw an A
+        data = a()
+        for stroke in data[:-1]: # Get all but the last, which is the point to end on
+        	#print "stroke"
+        	#print stroke
+        	new_stroke = numpy.array([])
+        	first_point = True
+        	for point in stroke:
+        		#print "original point"
+        		#print point
+        		#print "scaled point"
+        		new_point = .05*point
+        		#print new_point
+        		new_point = numpy.dot(R,new_point)
+        		#print "new point"
+        		#print new_point
+        		
+        		if first_point == True:
+        			new_stroke = new_point
+        			first_point = False
+        		else:
+        			new_stroke = numpy.vstack((new_stroke, new_point))
+        			
+        		
+        	#print "new stroke"
+        	#print new_stroke
+        	for new_stroke_point in new_stroke:
+        		stroke_request.points.append(make_point_from_array(new_stroke_point))
+        			
+        	output = request(stroke_request)
+        
     elif rospy.get_param('/mode')=="RRT":
         point1, point2 = get_connect_points()
         
@@ -201,6 +235,77 @@ def make_rotation_matrix(plane_normal):
 
     R = numpy.array([[kx**2*v+c, kx*ky*v - kz*s, kx*kz*v + ky*s],[kx*kz*v + kz*s, ky**2*v + c, ky*kz*v - kx*s],[kx*kz*v - ky*s, ky*kz*v + kx*s, kz**2 * v +c]])
     return R
+
+
+def a():
+	s_1 = numpy.array([[3,5,0],[7,5,0]])
+	s_2 = numpy.array([[1,1,0],[5,9,0],[9,1,0]])
+	p_end = numpy.array([9,1,0])
+	return s_1,s_2,p_end
+
+def b():
+	s_1 = numpy.array([[1,5,0],[5,5,0]])
+	s_2 = numpy.array([[6,1,0],[1,1,0],[1,5,0],[1,9,0],[5,9,0],[5,5,0],[6,5,0],[6,1,0]])
+	p_end = numpy.array([6,1,0])
+	return s_1,s_2,p_end
+	
+def c():
+	s_1 = numpy.array([[8,9,0],[1,9,0],[1,1,0],[8,1,0]])
+	p_end = numpy.array([8,1,0])
+	return s_1,p_end
+
+def d():
+	s_1 = numpy.array([[8,2,0],[1,1,0],[1,9,0],[8,8,0]])
+	p_end = numpy.array([8,1,0])
+	return s_1,p_end
+
+def e():
+	s_1 = numpy.array([[1,5,0],[6,5,0]])
+	s_2 = numpy.array([[6,9,0],[1,9,0],[1,5,0],[1,1,0],[6,1,0]])
+	p_end = numpy.array([6,1,0])
+	return s_1,s_2,p_end
+	
+def f():
+	s_1 = numpy.array([[1,5,0],[6,5,0]])
+	s_2 = numpy.array([[6,9,0],[1,9,0],[1,5,0],[1,1,0]])
+	p_end = numpy.array([6,1,0])
+	return s_1,s_2,p_end
+
+def g():
+	s_1 = numpy.array([[9,9,0],[1,9,0],[1,1,0],[9,1,0],[9,5,0],[5,5,0]])
+	p_end = numpy.array([9,1,0])
+	return s_1,p_end
+
+def h():
+	s_1 = numpy.array([[1,1,0],[1,9,0]])
+	s_2 = numpy.array([[1,5,0],[9,5,0]])
+	s_3 = numpy.array([[9,9,0],[9,1,0]])
+	p_end = numpy.array([9,1,0])
+	return s_1,s_2,s_3,p_end
+	
+def i():
+	s_1 = numpy.array([[1,9,0],[5,9,0],[9,9,0]])
+	s_2 = numpy.array([[5,9,0],[5,1,0]])
+	s_3 = numpy.array([[1,1,0],[5,1,0],[9,1,0]])
+	p_end = numpy.array([9,1,0])
+	return s_1,s_2,s_3,p_end
+
+def j():
+	s_1 = numpy.array([[1,9,0],[5,9,0],[9,9,0]])
+	s_2 = numpy.array([[5,9,0],[5,1,0]])
+	s_3 = numpy.array([[1,1,0],[5,1,0]])
+	p_end = numpy.array([9,1,0])
+	return s_1,s_2,s_3,p_end
+
+def k():
+	s_1 = numpy.array([[1,1,0],[1,5,0],[1,9,0]])
+	s_2 = numpy.array([[7,9,0],[1,5,0],[7,1,0]])
+	p_end = numpy.array([7,1,0])
+	return s_1,s_2,p_end
+	
+
+
+
 
 
 

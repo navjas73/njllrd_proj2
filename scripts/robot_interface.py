@@ -70,12 +70,16 @@ def move_to_point(initial_point,point):
         x0   = limb.endpoint_pose()   # current pose
         x0orientation = x0['orientation']
         x0   = x0['position']
+        print "x_0 unrotated"
+        print x0
         x0rotmax = quaternion_to_rotation(x0orientation[0],x0orientation[1],x0orientation[2],x0orientation[3])
         # offset vector. Add rotated offset vector to x0 to get desired end effector position 
         offset_vector = numpy.array([0,0,tool_length])
         rotated_offset = numpy.dot(x0rotmax,offset_vector)
 
         x0 = numpy.array([x0.x+rotated_offset[0,0], x0.y+rotated_offset[0,1], x0.z+rotated_offset[0,2]])
+        print "x_0 at tool tip"
+        print x_0
 
         '''print"x0"
         print x0
@@ -211,7 +215,7 @@ def move_to_point(initial_point,point):
             sleep(sleep_time)
             #x0last = x0 
     return True
-'''def move_to_initial_point(point):
+def move_to_initial_point(point):
     current_pose = limb.endpoint_pose()   # current pose
     new_pose     = limb.Point(point.x, point.y, point.z)
     print "current_pose"
@@ -222,7 +226,8 @@ def move_to_point(initial_point,point):
     print "joints"
     print joints
     limb.move_to_joint_positions(joints)
-    print "moved to initial point"'''
+    print "moved to initial point"
+    return True
 
 def command_handler(data):
     i = 0
@@ -233,6 +238,8 @@ def command_handler(data):
             print data.points.points[i-1]
             print "to point: "
             print point
+        else:
+        	x = move_to_initial_point(point)
         i = i+1
     print "end of command handler"
     return True
