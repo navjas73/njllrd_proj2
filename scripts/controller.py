@@ -77,6 +77,30 @@ def controller():
         points.points.append(make_point_from_array(second_point_rot_trans))
         request = rospy.ServiceProxy('connect_waypoints', connect_waypoints)
         output = request(points)
+    elif rospy.get_param('/mode')=="RRT":
+        point1, point2 = get_connect_points()
+        
+        points = waypoints()
+        
+        pointa = point()
+        
+        pointa.x = point1.endpoint.x
+        pointa.y = point1.endpoint.y
+        pointa.z = point1.endpoint.z
+
+        
+
+        pointb = point()
+        pointb.x = point2.endpoint.x
+        pointb.y = point2.endpoint.y
+        pointb.z = point2.endpoint.z
+
+        points.points.append(pointb)
+        points.points.append(pointa)
+        rospy.wait_for_service('construct_RRT')
+        request = rospy.ServiceProxy('construct_RRT', construct_RRT)
+        output = request(points)  
+        print output     
 
 
     # time.sleep(10)
