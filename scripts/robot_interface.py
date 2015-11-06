@@ -285,6 +285,25 @@ def handle_request_endpoint(data):
     print offset_vector'''
     return endpoint_position
 
+def handle_request_orientation(data):
+    q = limb.joint_angles()
+    q_current = numpy.array([0.0,0.0,0.0,0.0,0.0,0.0,0.0])
+    for key, value in q.iteritems():
+        if key == 'left_s0':
+            q_current[0] = value
+        elif key == 'left_s1':
+            q_current[1] = value
+        elif key == 'left_e0':
+            q_current[2] = value
+        elif key == 'left_e1':
+            q_current[3] = value
+        elif key == 'left_w0':
+            q_current[4] = value
+        elif key == 'left_w1':
+            q_current[5] = value
+        elif key == 'left_w2':
+            q_current[6] = value
+    return q_current
 
 def quaternion_to_rotation(qx,qy,qz,qw):
     rotation_matrix = numpy.matrix([[1-2*qy**2-2*qz**2, 2*qx*qy-2*qz*qw, 2*qx*qz+2*qy*qw],[2*qx*qy+2*qz*qw, 1-2*qx**2-2*qz**2, 2*qy*qz-2*qx*qw],[2*qx*qz-2*qy*qw, 2*qy*qz+2*qx*qw, 1-2*qx**2-2*qy**2]])
@@ -337,6 +356,8 @@ def robot_interface():
     
     # If requested, returns endpoint pose
     s = rospy.Service('request_endpoint', request_endpoint, handle_request_endpoint)
+
+    a = rospy.Service('request_orientation', request_orientation, handle_request_orientation)
 
     global joint_limits
     global limb 

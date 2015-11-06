@@ -12,6 +12,7 @@ flag = False
 def controller():
     rospy.init_node('controller')
     rospy.wait_for_service('request_endpoint')
+    rospy.wait_for_service('request_orientation')
     rospy.Subscriber('user_input', String, handle_user_input)
     
 
@@ -118,27 +119,14 @@ def controller():
     
     elif rospy.get_param('/mode')=="RRT":
         point1, point2 = get_connect_points()
-        
-        points = waypoints()
-        
-        pointa = point()
-        
-        pointa.x = point1.endpoint.x
-        pointa.y = point1.endpoint.y
-        pointa.z = point1.endpoint.z
+        goalstart = numpy.array([])
+        goalstart = numpy.append(goalstart, point1)
+        goalstart = numpy.append(goalstart, point1)
+        print goalstart
 
-        
-
-        pointb = point()
-        pointb.x = point2.endpoint.x
-        pointb.y = point2.endpoint.y
-        pointb.z = point2.endpoint.z
-
-        points.points.append(pointb)
-        points.points.append(pointa)
         rospy.wait_for_service('construct_RRT')
         request = rospy.ServiceProxy('construct_RRT', construct_RRT)
-        output = request(points)  
+        #output = request(points)  
         print output     
     
 
@@ -173,6 +161,12 @@ def request_position():
     output = request(yes)
     return output
 
+def request_config():
+    yes = True
+    request = rospy.ServiceProxy('request_orientation', request_orientation)
+    output = request(yes)
+    return output
+
 def get_connect_points():
     global flag
     flag = False
@@ -180,8 +174,10 @@ def get_connect_points():
     while flag == False:
         x = 1
         #loop
-
-    point1 = request_position()
+    if rospy.get_param('/mode') == "RRT":
+        point1 = request_config()
+    else:
+        point1 = request_position()
     flag = False
 
     while flag == False:
@@ -189,7 +185,10 @@ def get_connect_points():
         #loop
 
     #wait for user to hit enter
-    point2 = request_position()
+    if rospy.get_param('/mode') == "RRT":
+        point2 = request_config()
+    else:
+        point2 = request_position()
 
     #publish waypoints to robot_interface
 

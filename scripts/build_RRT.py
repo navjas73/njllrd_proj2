@@ -38,9 +38,9 @@ def sample_point():
     global joint_limits
     q_rand = numpy.array([])
     for i in range(0,len(joint_limits)):
-        indv_joint_rand = random.uniform(joint_limits[i,:][1],joint_limits[i,:][2])
-        q_rand = new_config.append(indv_joint_rand)
-        return q_rand
+        indv_joint_rand = random.uniform(joint_limits[i,:][0],joint_limits[i,:][1])
+        q_rand = numpy.append(q_rand,indv_joint_rand)
+    return q_rand
 
 def nearest_neighbor():
     global nodes
@@ -55,6 +55,7 @@ def RRT_handler(data):
     start = data.startfinish.points[1]
     # generate random q
     q_rand = sample_point()
+    print q_rand
     # get q_near
     q_near = nearest_neighbor()
     # get point some distance from q_near
