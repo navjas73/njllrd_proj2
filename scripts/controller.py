@@ -104,6 +104,7 @@ def controller():
                 
                 if first_point == True:
                     new_stroke = new_point
+                    #start_point = new_point + pointc
                     first_point = False
                 else:
                     new_stroke = numpy.vstack((new_stroke, new_point))
@@ -113,10 +114,34 @@ def controller():
                 new_stroke_point = new_stroke_point+pointc
                 
                 stroke_request.points.append(make_point_from_array(new_stroke_point))
+
+            # Before we start writing, lift pen and move to first point
+            go_to_stroke = waypoints()
+            current_position = request_position()
+            current_position = numpy.array([current_position.endpoint.x, current_position.endpoint.y, current_position.endpoint.z])
+            raise_height = numpy.array([0, 0, .02])
+            over_current = numpy.dot(R,raise_height) + current_position 
+            start_point = stroke_request.points[0]
+            print start_point
+            start_point = numpy.array([start_point.x, start_point.y, start_point.z])
+            over_start = numpy.dot(R,raise_height) + start_point
+
+            go_to_stroke.points.append(make_point_from_array(current_position))
+            go_to_stroke.points.append(make_point_from_array(over_current))
+            go_to_stroke.points.append(make_point_from_array(over_start))
+            go_to_stroke.points.append(make_point_from_array(start_point))
+            print "move to starting point - go_to_stroke"
+            print go_to_stroke
+            output = request(go_to_stroke)
+
+            # Send stroke
             print "stroke_request"     
             print stroke_request       
             output = request(stroke_request)
-    
+            
+            # clear stroke_request
+            stroke_request = waypoints()
+
     elif rospy.get_param('/mode')=="RRT":
         point1, point2 = get_connect_points()
         goalstart = numpy.array([])
