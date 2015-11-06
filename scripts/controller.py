@@ -44,6 +44,7 @@ def controller():
         output = request(points)
         
     elif rospy.get_param('/mode') == "draw":
+        scale_factor = 0.01
         point1, point2, point3 = get_plane_points()
         points = waypoints()
 
@@ -96,7 +97,7 @@ def controller():
                 print "original point"
                 print orig_point
                 print "scaled point"
-                new_point = .005*orig_point
+                new_point = scale_factor*orig_point
                 print new_point
                 new_point = numpy.dot(R,new_point)
                 print "new point"
@@ -104,7 +105,61 @@ def controller():
                 
                 if first_point == True:
                     new_stroke = new_point
-                    #start_point = new_point + pointc
+                    first_point = False
+                else:
+                    new_stroke = numpy.vstack((new_stroke, new_point))
+    
+            for new_stroke_point in new_stroke:
+                
+                new_stroke_point = new_stroke_point+pointc
+                
+                stroke_request.points.append(make_point_from_array(new_stroke_point))
+
+            
+            # Before we start writing, lift pen and move to first point
+            go_to_stroke = move_between_strokes(stroke_request,R)
+            print "move to starting point - go_to_stroke"
+            print go_to_stroke
+            output = request(go_to_stroke)
+
+            # Send stroke
+            print "stroke_request"     
+            print stroke_request       
+            output = request(stroke_request)
+            
+            # clear stroke_request for next stroke
+            stroke_request = waypoints()
+
+        # After writing a letter, need to move over to next spot
+        space_point = waypoints()
+        p_end = data[-1]
+        p_end = scale_factor * p_end
+        p_end[1] = p_end[1] - .02
+        p_end = numpy.dot(R,p_end)+pointc
+        pointc = p_end
+        space_point.points.append(make_point_from_array(p_end))
+        go_to_stroke = move_between_strokes(space_point,R)
+        output = request(go_to_stroke)
+
+
+        data = b()
+        for stroke in data[:-1]: # Get all but the last, which is the point to end on
+            print "stroke"
+            print stroke
+            new_stroke = numpy.array([])
+            first_point = True
+            for orig_point in stroke:
+                print "original point"
+                print orig_point
+                print "scaled point"
+                new_point = scale_factor*orig_point
+                print new_point
+                new_point = numpy.dot(R,new_point)
+                print "new point"
+                print new_point
+                
+                if first_point == True:
+                    new_stroke = new_point
                     first_point = False
                 else:
                     new_stroke = numpy.vstack((new_stroke, new_point))
@@ -116,20 +171,7 @@ def controller():
                 stroke_request.points.append(make_point_from_array(new_stroke_point))
 
             # Before we start writing, lift pen and move to first point
-            go_to_stroke = waypoints()
-            current_position = request_position()
-            current_position = numpy.array([current_position.endpoint.x, current_position.endpoint.y, current_position.endpoint.z])
-            raise_height = numpy.array([0, 0, .02])
-            over_current = numpy.dot(R,raise_height) + current_position 
-            start_point = stroke_request.points[0]
-            print start_point
-            start_point = numpy.array([start_point.x, start_point.y, start_point.z])
-            over_start = numpy.dot(R,raise_height) + start_point
-
-            go_to_stroke.points.append(make_point_from_array(current_position))
-            go_to_stroke.points.append(make_point_from_array(over_current))
-            go_to_stroke.points.append(make_point_from_array(over_start))
-            go_to_stroke.points.append(make_point_from_array(start_point))
+            go_to_stroke = move_between_strokes(stroke_request,R)
             print "move to starting point - go_to_stroke"
             print go_to_stroke
             output = request(go_to_stroke)
@@ -139,8 +181,9 @@ def controller():
             print stroke_request       
             output = request(stroke_request)
             
-            # clear stroke_request
+            # clear stroke_request for next stroke
             stroke_request = waypoints()
+
 
     elif rospy.get_param('/mode')=="RRT":
         point1, point2 = get_connect_points()
@@ -265,17 +308,32 @@ def make_rotation_matrix(plane_normal):
     R = numpy.array([[kx**2*v+c, kx*ky*v - kz*s, kx*kz*v + ky*s],[kx*kz*v + kz*s, ky**2*v + c, ky*kz*v - kx*s],[kx*kz*v - ky*s, ky*kz*v + kx*s, kz**2 * v +c]])
     return R
 
+def move_between_strokes(stroke_request,R):
+    go_to_stroke = waypoints()
+    current_position = request_position()
+    current_position = numpy.array([current_position.endpoint.x, current_position.endpoint.y, current_position.endpoint.z])
+    raise_height = numpy.array([0, 0, .02])
+    over_current = numpy.dot(R,raise_height) + current_position 
+    start_point = stroke_request.points[0]
+    start_point = numpy.array([start_point.x, start_point.y, start_point.z])
+    over_start = numpy.dot(R,raise_height) + start_point
+
+    go_to_stroke.points.append(make_point_from_array(current_position))
+    go_to_stroke.points.append(make_point_from_array(over_current))
+    go_to_stroke.points.append(make_point_from_array(over_start))
+    go_to_stroke.points.append(make_point_from_array(start_point))
+    return go_to_stroke
 
 def a():
-	s_1 = numpy.array([[5,3,0],[5,7,0]])
-	s_2 = numpy.array([[1,1,0],[9,5,0],[1,9,0]])
-	p_end = numpy.array([1,9,0])
+	s_1 = numpy.array([[5,-3,0],[5,-7,0]])
+	s_2 = numpy.array([[1,-1,0],[9,-5,0],[1,-9,0]])
+	p_end = numpy.array([1,-9,0])
 	return s_1,s_2,p_end
 
 def b():
-	s_1 = numpy.array([[1,5,0],[5,5,0]])
-	s_2 = numpy.array([[6,1,0],[1,1,0],[1,5,0],[1,9,0],[5,9,0],[5,5,0],[6,5,0],[6,1,0]])
-	p_end = numpy.array([6,1,0])
+	s_1 = numpy.array([[5,-1,0],[5,-5,0]])
+	s_2 = numpy.array([[1,-6,0],[1,-1,0],[5,-1,0],[9,-1,0],[9,-5,0],[5,-5,0],[5,-6,0],[1,-6,0]])
+	p_end = numpy.array([1,-6,0])
 	return s_1,s_2,p_end
 	
 def c():

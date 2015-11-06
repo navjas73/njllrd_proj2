@@ -29,7 +29,7 @@ kinematics = None
 joint_names = None
 tol         = None
 points = None
-tool_length = .15
+tool_length = .155
 joint_limits = None
 
 def move_to_point(initial_point,point):
@@ -55,10 +55,11 @@ def move_to_point(initial_point,point):
     at_goal = False
     #vel_mag = 0.02
     vel_mag = .02
-    kp = .5
+    #kp = .5
+    kp = 0
     deltaT = 0
     x0last = x_init;
-    sleep_time = .002
+    sleep_time = .005
     #uncomment when you don't want to recalculate position every time
     #x0   = x_init
     
@@ -126,7 +127,7 @@ def move_to_point(initial_point,point):
             print J_psuinv'''
 
             first = True
-            
+            '''
             for n in range(1,3):
                 b = numpy.random.rand(1,7)
                 b = .00001*b
@@ -197,12 +198,20 @@ def move_to_point(initial_point,point):
 
             q_dot = best_obj_qdot
             
-            #q_dot = numpy.dot(J_psuinv,v_des)
+            
             
             q_dot = q_dot.tolist()
             q_dot = numpy.transpose(q_dot)[0]
             #print "qdot"
             #print q_dot
+            '''
+            # Previous lines are objective function
+
+            # Following three commands are used when objective function is off
+            q_dot = numpy.dot(J_psuinv,v_des)
+            q_dot = q_dot.tolist()
+            q_dot = q_dot[0]
+
 
             #I don't think this did what we wanted it to
             # joint_command = {key:value for key in joint_names for value in q_dot}
@@ -255,6 +264,7 @@ def command_handler(data):
         else:
         	x = move_to_initial_point(point)
         i = i+1
+        time.sleep(.05)
     print "end of command handler"
     return True
 
