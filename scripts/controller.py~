@@ -77,6 +77,9 @@ def controller():
         #points.points.append(make_point_from_array(second_point_rot_trans))
         
         
+
+        
+
         request = rospy.ServiceProxy('connect_waypoints', connect_waypoints)
         
         stroke_request = waypoints()
@@ -104,9 +107,14 @@ def controller():
         			new_stroke = numpy.vstack((new_stroke, new_point))
         			
         		
-        	print "new stroke"
-        	print new_stroke
+        	#print "new stroke"
+        	#print new_stroke
+            print "pointc"
+            print pointc
         	for new_stroke_point in new_stroke:
+                print new_stroke_point
+                new_stroke_point = new_stroke_point+pointc
+                print new_stroke_point
         		stroke_request.points.append(make_point_from_array(new_stroke_point))
         			
         	output = request(stroke_request)

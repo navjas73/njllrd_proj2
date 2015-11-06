@@ -58,7 +58,7 @@ def move_to_point(initial_point,point):
     kp = .5
     deltaT = 0
     x0last = x_init;
-    sleep_time = .05
+    sleep_time = .002
     #uncomment when you don't want to recalculate position every time
     #x0   = x_init
     
@@ -70,16 +70,16 @@ def move_to_point(initial_point,point):
         x0   = limb.endpoint_pose()   # current pose
         x0orientation = x0['orientation']
         x0   = x0['position']
-        print "x_0 unrotated"
-        print x0
+        #print "x_0 unrotated"
+        #print x0
         x0rotmax = quaternion_to_rotation(x0orientation[0],x0orientation[1],x0orientation[2],x0orientation[3])
         # offset vector. Add rotated offset vector to x0 to get desired end effector position 
         offset_vector = numpy.array([0,0,tool_length])
         rotated_offset = numpy.dot(x0rotmax,offset_vector)
 
         x0 = numpy.array([x0.x+rotated_offset[0,0], x0.y+rotated_offset[0,1], x0.z+rotated_offset[0,2]])
-        print "x_0 at tool tip"
-        print x_0
+        #print "x0 at tool tip"
+        #print x0
 
         '''print"x0"
         print x0
@@ -101,8 +101,8 @@ def move_to_point(initial_point,point):
         
         #dist = numpy.linalg.norm(numpy.subtract(x_goal,x0))
         dist = numpy.linalg.norm(x_goal-x0)
-        print distTraveled
-        print numpy.linalg.norm(x_goal-x_init)
+        #print distTraveled
+        #print numpy.linalg.norm(x_goal-x_init)
         if distTraveled >= numpy.linalg.norm(x_goal - x_init):
             at_goal = True
             print "within tolerance"
@@ -126,7 +126,7 @@ def move_to_point(initial_point,point):
             print J_psuinv'''
 
             first = True
-            
+            '''
             for n in range(1,2):
                 b = numpy.random.rand(1,7)
                 #print b
@@ -193,21 +193,21 @@ def move_to_point(initial_point,point):
 
 
 
-            q_dot = best_obj_qdot
+            q_dot = best_obj_qdot'''
             
-            #q_dot = numpy.dot(J_psuinv,v_des)
+            q_dot = numpy.dot(J_psuinv,v_des)
             
             q_dot = q_dot.tolist()
             q_dot = numpy.transpose(q_dot)[0]
-            print "qdot"
-            print q_dot
+            #print "qdot"
+            #print q_dot
 
             #I don't think this did what we wanted it to
             # joint_command = {key:value for key in joint_names for value in q_dot}
 
             joint_command = dict(zip(joint_names,q_dot))
-            print "joint_command"
-            print joint_command
+            #print "joint_command"
+            #print joint_command
             limb.set_joint_velocities(joint_command)
             '''print "joint velocities"
             print limb.joint_velocities()'''
@@ -215,16 +215,27 @@ def move_to_point(initial_point,point):
             sleep(sleep_time)
             #x0last = x0 
     return True
+
 def move_to_initial_point(point):
-    current_pose = limb.endpoint_pose()   # current pose
-    new_pose     = limb.Point(point.x, point.y, point.z)
-    print "current_pose"
-    print current_pose['orientation']
+  
+    x0   = limb.endpoint_pose()   # current pose
+    x0orientation = x0['orientation']
+       
+    x0rotmax = quaternion_to_rotation(x0orientation[0],x0orientation[1],x0orientation[2],x0orientation[3])
+
+    offset_vector = numpy.array([0,0,tool_length])
+    rotated_offset = numpy.dot(x0rotmax,offset_vector)
+
+    new_pose = numpy.array([point.x-rotated_offset[0,0], point.y-rotated_offset[0,1], point.z-rotated_offset[0,2]])
+
+    new_pose     = limb.Point(new_pose[0], new_pose[1], new_pose[2])
+    #print "current_pose"
+    #print current_pose['orientation']
     print "new_pose"
     print new_pose
-    joints       = request_kinematics(new_pose, current_pose['orientation'],'left')
-    print "joints"
-    print joints
+    joints       = request_kinematics(new_pose, x0orientation,'left')
+    #print "joints"
+    #print joints
     limb.move_to_joint_positions(joints)
     print "moved to initial point"
     return True
@@ -233,11 +244,12 @@ def command_handler(data):
     i = 0
     for point in data.points.points:
         if (i is not 0):
-            x = move_to_point(data.points.points[i-1],point)
             print "move from point: "
             print data.points.points[i-1]
             print "to point: "
             print point
+            #x = move_to_point(data.points.points[i-1],point)
+            
         else:
         	x = move_to_initial_point(point)
         i = i+1

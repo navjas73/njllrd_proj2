@@ -77,39 +77,44 @@ def controller():
         #points.points.append(make_point_from_array(second_point_rot_trans))
         
         
+
+        print "pointc"
+        print pointc
+
         request = rospy.ServiceProxy('connect_waypoints', connect_waypoints)
         
         stroke_request = waypoints()
         #Try to draw an A
         data = a()
         for stroke in data[:-1]: # Get all but the last, which is the point to end on
-        	#print "stroke"
-        	#print stroke
-        	new_stroke = numpy.array([])
-        	first_point = True
-        	for point in stroke:
-        		#print "original point"
-        		#print point
-        		#print "scaled point"
-        		new_point = .05*point
-        		#print new_point
-        		new_point = numpy.dot(R,new_point)
-        		#print "new point"
-        		#print new_point
-        		
-        		if first_point == True:
-        			new_stroke = new_point
-        			first_point = False
-        		else:
-        			new_stroke = numpy.vstack((new_stroke, new_point))
-        			
-        		
-        	#print "new stroke"
-        	#print new_stroke
-        	for new_stroke_point in new_stroke:
-        		stroke_request.points.append(make_point_from_array(new_stroke_point))
-        			
-        	output = request(stroke_request)
+            print "stroke"
+            print stroke
+            new_stroke = numpy.array([])
+            first_point = True
+            for point in stroke:
+                print "original point"
+                print point
+                print "scaled point"
+                new_point = .01*point
+                print new_point
+                new_point = numpy.dot(R,new_point)
+                print "new point"
+                print new_point
+                
+                if first_point == True:
+                    new_stroke = new_point
+                    first_point = False
+                else:
+                    new_stroke = numpy.vstack((new_stroke, new_point))
+    
+            for new_stroke_point in new_stroke:
+                
+                new_stroke_point = new_stroke_point+pointc
+                
+                stroke_request.points.append(make_point_from_array(new_stroke_point))
+            print "stroke_request"     
+            print stroke_request       
+            output = request(stroke_request)
         
     elif rospy.get_param('/mode')=="RRT":
         point1, point2 = get_connect_points()
