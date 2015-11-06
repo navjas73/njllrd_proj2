@@ -96,7 +96,7 @@ def controller():
                 print "original point"
                 print orig_point
                 print "scaled point"
-                new_point = .01*orig_point
+                new_point = .005*orig_point
                 print new_point
                 new_point = numpy.dot(R,new_point)
                 print "new point"
@@ -242,9 +242,9 @@ def make_rotation_matrix(plane_normal):
 
 
 def a():
-	s_1 = numpy.array([[3,5,0],[7,5,0]])
-	s_2 = numpy.array([[1,1,0],[5,9,0],[9,1,0]])
-	p_end = numpy.array([9,1,0])
+	s_1 = numpy.array([[5,3,0],[5,7,0]])
+	s_2 = numpy.array([[1,1,0],[9,5,0],[1,9,0]])
+	p_end = numpy.array([1,9,0])
 	return s_1,s_2,p_end
 
 def b():
