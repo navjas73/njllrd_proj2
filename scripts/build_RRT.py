@@ -9,7 +9,7 @@ import PyKDL
 from baxter_pykdl import baxter_kinematics
 import numpy
 import random
-import scipy
+import scipy.spatial
 
 from njllrd_proj2.srv import *
 from njllrd_proj2.msg import *
@@ -32,7 +32,8 @@ tol         = None
 points = None
 tool_length = .15
 joint_limits = None
-nodes = None
+nodes = numpy.array([])
+stepSize = 0.02
 
 def sample_point():
     global joint_limits
@@ -42,30 +43,47 @@ def sample_point():
         q_rand = numpy.append(q_rand,indv_joint_rand)
     return q_rand
 
-def nearest_neighbor():
+def nearest_neighbor(q_rand):
     global nodes
-
+    print "nodes"
+    print nodes
     tree = scipy.spatial.KDTree(nodes[:,0:7])    # configurations need to be row numpy arrays
+    print "tree"
+    print tree.data
     d, i = tree.query(q_rand)          # returns ("distance to nearest neighbors", index of nearest neighbor --- we want index)
     q_near = tree.data[i]
     return q_near
 
 def RRT_handler(data):
-    goal = data.startfinish.points[0]
-    start = data.startfinish.points[1]
+    global nodes
+    global stepSize
+    goal = numpy.asarray(data.goal)
+    start = numpy.asarray(data.start)
+    nodes = numpy.array([numpy.append(start,-1)])
     # generate random q
     q_rand = sample_point()
+    print "qrand"
     print q_rand
     # get q_near
-    q_near = nearest_neighbor()
+    q_near = nearest_neighbor(q_rand)
+    print "qnear"
+    print q_near
     # get point some distance from q_near
-    q_new = (q_rand - q_near)/numpy.linalg.norm(q_rand - q_near) * stepSize
-    # check collision
+    q_new = (q_rand - q_near)/numpy.linalg.norm(q_rand - q_near) * stepSize + q_near
+    print "qnew"
+    print q_new
+    # check collision for q_new
+    # check for collision between q_new and q_goal
+    # if collision between q_new and q_goal but no collision for q_new, add vertex and add edge
+    # else if no collision between q_new and q_goal and no collision for q_new
+    # add vertex and edge. Then add goal as vertex and edge. Then exit  for loop
+
+    # get path from edges and vertices 
     
     # add or dont add to tree (edge and node)
     # check if can see q_goal
 
-    return data.startfinish
+    return []
 
 def build_RRT():
     rospy.init_node('build_RRT')

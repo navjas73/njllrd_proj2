@@ -187,14 +187,10 @@ def controller():
 
     elif rospy.get_param('/mode')=="RRT":
         point1, point2 = get_connect_points()
-        goalstart = numpy.array([])
-        goalstart = numpy.append(goalstart, point1)
-        goalstart = numpy.append(goalstart, point1)
-        print goalstart
-
+        #goalstart = numpy.array([numpy.asarray(point1.config),numpy.asarray(point2.config)])
         rospy.wait_for_service('construct_RRT')
         request = rospy.ServiceProxy('construct_RRT', construct_RRT)
-        #output = request(points)  
+        output = request(point1.config, point2.config)  
         print output     
     
 
