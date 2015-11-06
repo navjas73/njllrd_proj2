@@ -20,28 +20,28 @@ def controller():
         
         points = waypoints()
         
-        pointa = point()
+        pointi = point()
         
-        pointa.x = point1.endpoint.x
-        pointa.y = point1.endpoint.y
-        pointa.z = point1.endpoint.z
+        pointi.x = point1.endpoint.x
+        pointi.y = point1.endpoint.y
+        pointi.z = point1.endpoint.z
 
         
 
-        pointb = point()
-        pointb.x = point2.endpoint.x
-        pointb.y = point2.endpoint.y
-        pointb.z = point2.endpoint.z
+        pointj = point()
+        pointj.x = point2.endpoint.x
+        pointj.y = point2.endpoint.y
+        pointj.z = point2.endpoint.z
 
-        points.points.append(pointb)
-        points.points.append(pointa)
+        points.points.append(pointj)
+        points.points.append(pointi)
         
         print points.points[0]
         print points.points[1]
         print points.points
         request = rospy.ServiceProxy('connect_waypoints', connect_waypoints)
         output = request(points)
-
+        
     elif rospy.get_param('/mode') == "draw":
         point1, point2, point3 = get_plane_points()
         points = waypoints()
@@ -91,11 +91,11 @@ def controller():
             print stroke
             new_stroke = numpy.array([])
             first_point = True
-            for point in stroke:
+            for orig_point in stroke:
                 print "original point"
-                print point
+                print orig_point
                 print "scaled point"
-                new_point = .01*point
+                new_point = .01*orig_point
                 print new_point
                 new_point = numpy.dot(R,new_point)
                 print "new point"
@@ -115,7 +115,7 @@ def controller():
             print "stroke_request"     
             print stroke_request       
             output = request(stroke_request)
-        
+    
     elif rospy.get_param('/mode')=="RRT":
         point1, point2 = get_connect_points()
         
@@ -140,7 +140,7 @@ def controller():
         request = rospy.ServiceProxy('construct_RRT', construct_RRT)
         output = request(points)  
         print output     
-
+    
 
     # time.sleep(10)
     rospy.spin()
