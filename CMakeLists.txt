@@ -49,6 +49,7 @@ FILES
 request_endpoint.srv
 connect_waypoints.srv
 request_orientation.srv
+construct_RRT.srv
 #construct_RRT.srv
 )
 ## Generate actions in the 'action' folder

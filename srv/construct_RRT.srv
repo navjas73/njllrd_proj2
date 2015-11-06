@@ -1,3 +1,4 @@
-waypoints startfinish 
+float64[] goal
+float64[] start
 ---
-waypoints path
+float64[] path
