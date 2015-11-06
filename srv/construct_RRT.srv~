@@ -1,3 +1,3 @@
-waypoints startfinish
+Point[] startfinish 
 ---
-waypoints path
+Point[] path

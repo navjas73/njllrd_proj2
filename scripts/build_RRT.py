@@ -9,6 +9,7 @@ import PyKDL
 from baxter_pykdl import baxter_kinematics
 import numpy
 import random
+import scipy
 
 from njllrd_proj2.srv import *
 from njllrd_proj2.msg import *
@@ -31,17 +32,37 @@ tol         = None
 points = None
 tool_length = .15
 joint_limits = None
+nodes = None
 
 def sample_point():
     global joint_limits
-    new_config = numpy.array([])
+    q_rand = numpy.array([])
     for i in range(0,len(joint_limits)):
         indv_joint_rand = random.uniform(joint_limits[i,:][1],joint_limits[i,:][2])
-        new_config = new_config.append(indv_joint_rand)
+        q_rand = new_config.append(indv_joint_rand)
+        return q_rand
+
+def nearest_neighbor():
+    global nodes
+
+    tree = scipy.spatial.KDTree(nodes[:,0:7])    # configurations need to be row numpy arrays
+    d, i = tree.query(q_rand)          # returns ("distance to nearest neighbors", index of nearest neighbor --- we want index)
+    q_near = tree.data[i]
+    return q_near
 
 def RRT_handler(data):
     goal = data.startfinish.points[0]
     start = data.startfinish.points[1]
+    # generate random q
+    q_rand = sample_point()
+    # get q_near
+    q_near = nearest_neighbor()
+    # get point some distance from q_near
+    q_new = (q_rand - q_near)/numpy.linalg.norm(q_rand - q_near) * stepSize
+    # check collision
+    
+    # add or dont add to tree (edge and node)
+    # check if can see q_goal
 
     return data.startfinish
 
@@ -55,7 +76,7 @@ def build_RRT():
     global limb 
     global kinematics
     global joint_names
-    
+    stepSize = 0.017    # ~1 degree in radians
     # Left limb
     joint_names = ['left_s0', 'left_s1', 'left_e0', 'left_e1', 'left_w0', 'left_w1', 'left_w2']
     limb        = baxter_interface.Limb('left') #instantiate limb
@@ -69,6 +90,7 @@ def build_RRT():
     #kinematics = baxter_kinematics('right')
     #joint_limits = numpy.array([[-2.461, .890],[-2.147,1.047],[-3.028,3.028],[-.052,2.618],[-3.059,3.059],[-1.571,2.094],[-3.059,3.059]])
     #max_joint_speeds = numpy.array([2.0,2.0,2.0,2.0,4.0,4.0,4.0])
+
 
     global points
     points = waypoints()
