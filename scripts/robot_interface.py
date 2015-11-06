@@ -126,43 +126,45 @@ def move_to_point(initial_point,point):
             print J_psuinv'''
 
             first = True
-            '''
-            for n in range(1,2):
+            
+            for n in range(1,3):
                 b = numpy.random.rand(1,7)
+                b = .00001*b
+                #b = numpy.array([0,0,0,0,0,0,0])
                 #print b
                 #print J_psuinv
                 #print J
-                print "vdes"
-                print v_des
-                print "numpy.dot(Jpsu, vdes"
-                print numpy.dot(J_psuinv,v_des)
+                #print "vdes"
+                #print v_des
+                #print "numpy.dot(Jpsu, vdes"
+                #print numpy.dot(J_psuinv,v_des)
                 #prod1 = numpy.dot(J_psuinv,v_des) 
                 #print (numpy.identity(7)-numpy.dot(J_psuinv,J))
                 #print b[0]
                 #print numpy.transpose(b)
-                print numpy.dot((numpy.identity(7)-numpy.dot(J_psuinv,J)),numpy.transpose(b))
+                #print numpy.dot((numpy.identity(7)-numpy.dot(J_psuinv,J)),numpy.transpose(b))
 
                 q_dot = numpy.transpose(numpy.dot(J_psuinv,v_des)) + numpy.dot((numpy.identity(7)-numpy.dot(J_psuinv,J)),numpy.transpose(b))
-                print "qdot"
-                print q_dot
+                #print "qdot"
+                #print q_dot
                 
                 q = limb.joint_angles()
                 
                 q_current = numpy.array([[0],[0],[0],[0],[0],[0],[0]])
                 for key, value in q.iteritems():
-                    if key == 'right_s0':
+                    if key == 'left_s0':
                         q_current[0] = value
-                    elif key == 'right_s1':
+                    elif key == 'left_s1':
                         q_current[1] = value
-                    elif key == 'right_e0':
+                    elif key == 'left_e0':
                         q_current[2] = value
-                    elif key == 'right_e1':
+                    elif key == 'left_e1':
                         q_current[3] = value
-                    elif key == 'right_w0':
+                    elif key == 'left_w0':
                         q_current[4] = value
-                    elif key == 'right_w1':
+                    elif key == 'left_w1':
                         q_current[5] = value
-                    elif key == 'right_w2':
+                    elif key == 'left_w2':
                         q_current[6] = value
 
                 obj = 0
@@ -170,8 +172,8 @@ def move_to_point(initial_point,point):
                 best_obj_b = 0
 
                 q_next = q_current+q_dot*sleep_time
-                print "qnext"
-                print q_next
+                #print "qnext"
+                #print q_next
                 high = joint_limits[:,1]
                 low = joint_limits[:,0]
                 obj = numpy.divide(1.0,numpy.power((high-q_next),2))+numpy.divide(1.0,numpy.power((low-q_next),2))
@@ -193,9 +195,9 @@ def move_to_point(initial_point,point):
 
 
 
-            q_dot = best_obj_qdot'''
+            q_dot = best_obj_qdot
             
-            q_dot = numpy.dot(J_psuinv,v_des)
+            #q_dot = numpy.dot(J_psuinv,v_des)
             
             q_dot = q_dot.tolist()
             q_dot = numpy.transpose(q_dot)[0]
@@ -248,7 +250,7 @@ def command_handler(data):
             print data.points.points[i-1]
             print "to point: "
             print point
-            #x = move_to_point(data.points.points[i-1],point)
+            x = move_to_point(data.points.points[i-1],point)
             
         else:
         	x = move_to_initial_point(point)
