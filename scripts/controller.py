@@ -411,6 +411,61 @@ def p():
 	p_end = numpy.array([1,-6,0])
 	return s_1, p_end
 
+def q():
+	s_1 = numpy.array([[1,-7,0],[1,-1,o],[9,-1,0],[9,-7,0],[1,-7,0]])
+	s_2 = numpy.array([4,-4,0],[1,-8,0]])
+	p_end = numpy.array([1,-8,0])
+	return s_1, s_2, p_end
+
+def r():
+	s_1 = numpy.array([[5,-1,0],[5,-5,0]])
+	s_2 = numpy.array([[1,-1,0],[5,-1,0],[9,-1,0],[9,-5,0],[5,-5,0],[5,-6,0],[1,-6,0]])
+	p_end = numpy.array([1,-6,0])
+	return s_1, s_2, p_end
+
+def s():
+	s_1 = numpy.array([[1,-1,0],[1,-6,0],[5,-6,0],[5,-1,0],[9,-1,0],[9,-5,0]])
+	p_end = numpy.array([1,-6,0])
+	return s_1, p_end
+	
+def t():
+	s_1 = numpy.array([[9,-1,0],[9,-5,0],[9,-9,0]])
+	s_2 = numpy.array([[9,-5,0],[1,-5,0]])
+	p_end = numpy.array([1,-9,0])
+	return s_1, s_2, p_end
+
+def u():
+	s_1 = numpy.array([[9,-1,0],[1,-1,0],[1,-7,0],[9,-7,0]])
+	p_end = numpy.array([1,-7,0])
+	return s_1, p_end
+
+def v():
+	s_1 = numpy.array([[9,-1,0],[1,-5,0],[9,-9,0]])
+	p_end = numpy.array([1,-9,0])
+	return s_1, p_end
+
+def w():
+	s_1 = numpy.array([[9,-1,0],[1,-3,0],[9,-5,0],[1,-7,0],[9,-9,0]])
+	p_end = numpy.array([1,-9,0])
+	return s_1, p_end
+	
+def x():
+	s_1 = numpy.array([[1,-1,0],[9,-9,0]])
+	s_2 = numpy.array([[9,-1,0],[1,-9,0]])
+	p_end = numpy.array([1,-9,0])
+	return s_1, s_2, p_end
+
+def y():
+	s_1 = numpy.array([[9,-1,0],[5,-5,0],[1,-5,0]])
+	s_2 = numpy.array([[5,-5,0],[9,-9,0]])
+	p_end = numpy.array([1,-9,0])
+	return s_1, s_2, p_end
+
+def z():
+	s_1 = numpy.array([[5,-2,0],[5,-8,0]])
+	s_2 = numpy.array([[9,-1,0],[9,-9,0],[1,-1,0],[1,-9,0]])
+	p_end = numpy.array([1,-9,0])
+	return s_1, s_2, p_end
 
 
 if __name__ == "__main__":
