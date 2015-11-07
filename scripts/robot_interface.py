@@ -29,7 +29,7 @@ kinematics = None
 joint_names = None
 tol         = None
 points = None
-tool_length = .155
+tool_length = .170
 joint_limits = None
 
 def move_to_point(initial_point,point):
@@ -54,9 +54,9 @@ def move_to_point(initial_point,point):
     print x_goal 
     at_goal = False
     #vel_mag = 0.02
-    vel_mag = .02
+    vel_mag = .025
     #kp = .5
-    kp = 0
+    kp = .5
     deltaT = 0
     x0last = x_init;
     sleep_time = .005
@@ -66,6 +66,7 @@ def move_to_point(initial_point,point):
     time_initial = rospy.get_time();
     deltaT  =  0;
     while not at_goal:
+        limb.exit_control_mode()
         #recalculating position every time
         #comment when set position once
         x0   = limb.endpoint_pose()   # current pose
@@ -117,7 +118,7 @@ def move_to_point(initial_point,point):
             
 
             #v_des = (x_goal-x0)/dist*vel_mag
-            v_des = numpy.append(v_des, [0,0,0]) # calculate desired velocity, zero angular velocities
+            v_des = numpy.append(v_des, [0.0,0.0,0.0]) # calculate desired velocity, zero angular velocities
             
             J = kinematics.jacobian()
             J_psuinv  = kinematics.jacobian_pseudo_inverse()
@@ -212,10 +213,6 @@ def move_to_point(initial_point,point):
             q_dot = q_dot.tolist()
             q_dot = q_dot[0]
 
-
-            #I don't think this did what we wanted it to
-            # joint_command = {key:value for key in joint_names for value in q_dot}
-
             joint_command = dict(zip(joint_names,q_dot))
             #print "joint_command"
             #print joint_command
@@ -264,7 +261,7 @@ def command_handler(data):
         else:
         	x = move_to_initial_point(point)
         i = i+1
-        time.sleep(.05)
+        time.sleep(.1)
     print "end of command handler"
     return True
 
