@@ -386,10 +386,30 @@ def k():
 	p_end = numpy.array([1,-7,0])
 	return s_1,s_2,p_end
 	
+def l():
+	s_1 = numpy.array([[9,-1,0],[1,-1,0],[1,-7,0]])
+	p_end = numpy.array([1,-7,0])
+	return s_1, p_end
 
+def m():
+	s_1 = numpy.array([[1,-1,0],[9,-1,0],[5,-5,0],[9,-9,0],[1,-9,0]])
+	p_end = numpy.array([1,-9,0])
+	return s_1, p_end
+	
+def n():
+	s_1 = numpy.array([[1,-1,0],[9,-1,0],[1,-7,0],[9,-7,0]])
+	p_end = numpy.array([1,-7,0])
+	return s_1, p_end
 
+def o():
+	s_1 = numpy.array([[1,-8,0],[1,-1,0],[9,-9,0],[9,-8,0],[1,-8,0]])
+	p_end = numpy.array([1,-8,0])
+	return s_1, p_end
 
-
+def p():
+	s_1 = numpy.array([[5,-1,0],[5,-6,0],[9,-6,0],[9,-1,0],[5,-1,0],[1,-1,0]])
+	p_end = numpy.array([1,-6,0])
+	return s_1, p_end
 
 
 
