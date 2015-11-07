@@ -333,57 +333,57 @@ def b():
 	return s_1,s_2,p_end
 	
 def c():
-	s_1 = numpy.array([[8,9,0],[1,9,0],[1,1,0],[8,1,0]])
-	p_end = numpy.array([8,1,0])
+	s_1 = numpy.array([[9,-8,0],[9,-1,0],[1,-1,0],[1,-8,0]])
+	p_end = numpy.array([1,-8,0])
 	return s_1,p_end
 
 def d():
-	s_1 = numpy.array([[8,2,0],[1,1,0],[1,9,0],[8,8,0]])
-	p_end = numpy.array([8,1,0])
+	s_1 = numpy.array([[2,-8,0],[1,-1,0],[9,-1,0],[8,-8,0]])
+	p_end = numpy.array([1,-8,0])
 	return s_1,p_end
 
 def e():
-	s_1 = numpy.array([[1,5,0],[6,5,0]])
-	s_2 = numpy.array([[6,9,0],[1,9,0],[1,5,0],[1,1,0],[6,1,0]])
-	p_end = numpy.array([6,1,0])
+	s_1 = numpy.array([[5,-1,0],[5,-6,0]])
+	s_2 = numpy.array([[9,-6,0],[9,-1,0],[5,-1,0],[1,-1,0],[1,-6,0]])
+	p_end = numpy.array([1,-6,0])
 	return s_1,s_2,p_end
 	
 def f():
-	s_1 = numpy.array([[1,5,0],[6,5,0]])
-	s_2 = numpy.array([[6,9,0],[1,9,0],[1,5,0],[1,1,0]])
-	p_end = numpy.array([6,1,0])
+	s_1 = numpy.array([[5,-1,0],[5,-6,0]])
+	s_2 = numpy.array([[9,-6,0],[9,-1,0],[5,-1,0],[1,-1,0]])
+	p_end = numpy.array([1,-6,0])
 	return s_1,s_2,p_end
 
 def g():
-	s_1 = numpy.array([[9,9,0],[1,9,0],[1,1,0],[9,1,0],[9,5,0],[5,5,0]])
-	p_end = numpy.array([9,1,0])
+	s_1 = numpy.array([[9,-9,0],[9,-1,0],[1,-1,0],[1,-9,0],[5,-9,0],[5,-5,0]])
+	p_end = numpy.array([1,-9,0])
 	return s_1,p_end
 
 def h():
-	s_1 = numpy.array([[1,1,0],[1,9,0]])
-	s_2 = numpy.array([[1,5,0],[9,5,0]])
-	s_3 = numpy.array([[9,9,0],[9,1,0]])
-	p_end = numpy.array([9,1,0])
+	s_1 = numpy.array([[1,-1,0],[9,-1,0]])
+	s_2 = numpy.array([[5,-1,0],[5,-9,0]])
+	s_3 = numpy.array([[9,-9,0],[1,-9,0]])
+	p_end = numpy.array([1,-9,0])
 	return s_1,s_2,s_3,p_end
 	
 def i():
-	s_1 = numpy.array([[1,9,0],[5,9,0],[9,9,0]])
-	s_2 = numpy.array([[5,9,0],[5,1,0]])
-	s_3 = numpy.array([[1,1,0],[5,1,0],[9,1,0]])
-	p_end = numpy.array([9,1,0])
+	s_1 = numpy.array([[9,-1,0],[9,-5,0],[9,-9,0]])
+	s_2 = numpy.array([[9,-5,0],[1,-5,0]])
+	s_3 = numpy.array([[1,-1,0],[1,-5,0],[1,-9,0]])
+	p_end = numpy.array([1,-9,0])
 	return s_1,s_2,s_3,p_end
 
 def j():
-	s_1 = numpy.array([[1,9,0],[5,9,0],[9,9,0]])
-	s_2 = numpy.array([[5,9,0],[5,1,0]])
-	s_3 = numpy.array([[1,1,0],[5,1,0]])
-	p_end = numpy.array([9,1,0])
+	s_1 = numpy.array([[9,-1,0],[9,-5,0],[9,-9,0]])
+	s_2 = numpy.array([[9,-5,0],[1,-5,0]])
+	s_3 = numpy.array([[1,-1,0],[1,-5,0]])
+	p_end = numpy.array([1,-9,0])
 	return s_1,s_2,s_3,p_end
 
 def k():
-	s_1 = numpy.array([[1,1,0],[1,5,0],[1,9,0]])
-	s_2 = numpy.array([[7,9,0],[1,5,0],[7,1,0]])
-	p_end = numpy.array([7,1,0])
+	s_1 = numpy.array([[1,-1,0],[5,-1,0],[9,-1,0]])
+	s_2 = numpy.array([[9,-7,0],[5,-1,0],[1,-7,0]])
+	p_end = numpy.array([1,-7,0])
 	return s_1,s_2,p_end
 	
 
