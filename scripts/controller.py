@@ -3,6 +3,7 @@ import rospy
 import time
 import math
 import numpy
+import ast
 from njllrd_proj2.srv import *
 from njllrd_proj2.msg import *
 from std_msgs.msg import String
@@ -193,6 +194,35 @@ def controller():
         output = request(point1.config, point2.config)  
         print output     
     
+    elif rospy.get_param('/mode') == "typewriter":
+        scale_factor = 0.01
+        done = False
+        point1, point2, point3 = get_plane_points()
+        points = waypoints()
+
+        pointa = numpy.array([point1.endpoint.x, point1.endpoint.y, point1.endpoint.z])
+        pointb = numpy.array([point2.endpoint.x, point2.endpoint.y, point2.endpoint.z])
+        pointc = numpy.array([point3.endpoint.x, point3.endpoint.y, point3.endpoint.z])
+        
+        plane_vec = numpy.cross(pointa-pointb, pointb-pointc)
+        plane_normal = plane_vec/numpy.linalg.norm(plane_vec)
+        R = make_rotation_matrix(plane_normal)
+
+        print "Typewriter mode. Enter letters one at a time."
+        while not done:
+            letter = raw_input()
+            print letter
+            if letter == 'end':
+                done == True
+            else:
+                possibles = globals().copy()
+                possibles.update(locals())
+                method = possibles.get(letter)
+                data = method()
+                print data
+                pointc = draw_letter(data,scale_factor,R,pointc)
+                print "Enter next letter"
+
 
     # time.sleep(10)
     rospy.spin()
@@ -259,6 +289,7 @@ def get_connect_points():
     return (point1, point2)
 
 def get_plane_points():
+    print "Requesting three plane points. Enter point 1"
     global flag
     flag = False
 
@@ -270,6 +301,7 @@ def get_plane_points():
     point1 = request_position()
     flag = False
 
+    print "Enter point 2"
     while flag == False:
         x = 1
         #loop
@@ -278,6 +310,7 @@ def get_plane_points():
     point2 = request_position()
     flag = False
 
+    print "Enter point 3"
     while flag == False:
         x = 1
         #loop
@@ -303,6 +336,54 @@ def make_rotation_matrix(plane_normal):
 
     R = numpy.array([[kx**2*v+c, kx*ky*v - kz*s, kx*kz*v + ky*s],[kx*kz*v + kz*s, ky**2*v + c, ky*kz*v - kx*s],[kx*kz*v - ky*s, ky*kz*v + kx*s, kz**2 * v +c]])
     return R
+
+def draw_letter(data,scale_factor,R,pointc):
+    request = rospy.ServiceProxy('connect_waypoints', connect_waypoints)
+    stroke_request = waypoints()
+    for stroke in data[:-1]: # Get all but the last, which is the point to end on
+            new_stroke = numpy.array([])
+            first_point = True
+            for orig_point in stroke:
+                new_point = scale_factor*orig_point
+                new_point = numpy.dot(R,new_point)
+                
+                if first_point == True:
+                    new_stroke = new_point
+                    first_point = False
+                else:
+                    new_stroke = numpy.vstack((new_stroke, new_point))
+    
+            for new_stroke_point in new_stroke:
+                
+                new_stroke_point = new_stroke_point+pointc
+                
+                stroke_request.points.append(make_point_from_array(new_stroke_point))
+
+            
+            # Before we start writing, lift pen and move to first point
+            go_to_stroke = move_between_strokes(stroke_request,R)
+            print "move to starting of stroke"
+            output = request(go_to_stroke)
+
+            # Send stroke
+            print "writing stroke"    
+            output = request(stroke_request)
+            
+            # clear stroke_request for next stroke
+            stroke_request = waypoints()
+
+    # After writing a letter, need to move over to next spot
+    space_point = waypoints()
+    p_end = data[-1]
+    p_end = scale_factor * p_end
+    p_end[1] = p_end[1] - .02
+    p_end = numpy.dot(R,p_end)+pointc
+    pointc = p_end
+    space_point.points.append(make_point_from_array(p_end))
+    go_to_stroke = move_between_strokes(space_point,R)
+    output = request(go_to_stroke)
+
+    return pointc
 
 def move_between_strokes(stroke_request,R):
     go_to_stroke = waypoints()
@@ -412,8 +493,8 @@ def p():
 	return s_1, p_end
 
 def q():
-	s_1 = numpy.array([[1,-7,0],[1,-1,o],[9,-1,0],[9,-7,0],[1,-7,0]])
-	s_2 = numpy.array([4,-4,0],[1,-8,0]])
+	s_1 = numpy.array([[1,-7,0],[1,-1,0],[9,-1,0],[9,-7,0],[1,-7,0]])
+	s_2 = numpy.array([[4,-4,0],[1,-8,0]])
 	p_end = numpy.array([1,-8,0])
 	return s_1, s_2, p_end
 
