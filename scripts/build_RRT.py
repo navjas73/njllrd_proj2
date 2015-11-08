@@ -33,6 +33,7 @@ points = None
 tool_length = .15
 joint_limits = None
 nodes = numpy.array([])
+edges = numpy.array([[-1,-1]])
 stepSize = 0.02
 
 def sample_point():
@@ -52,10 +53,44 @@ def nearest_neighbor(q_rand):
     print tree.data
     d, i = tree.query(q_rand)          # returns ("distance to nearest neighbors", index of nearest neighbor --- we want index)
     q_near = tree.data[i]
-    return q_near
+    return d,i,q_near
+
+def line_to_point(step,distance,index,q_near,q_rand, add_to_tree):
+    global nodes
+    global edges
+    num_points = int(distance/step)
+    print "distance"
+    print distance
+    print "num_points"
+    print num_points 
+    q_prev = q_near 
+    parent = index
+    end = 0
+    for i in range(1,num_points+1):
+        q_next = (q_rand - q_near)/distance*stepSize*i + q_near
+        collide = 0
+        # collision check q_next
+        if not collide:
+            if add_to_tree:
+                new_node = numpy.asarray([numpy.append(q_next, index)])
+                nodes = numpy.concatenate((nodes,new_node), axis = 0)
+                edges = numpy.concatenate((edges,numpy.array([[parent,len(nodes)-1]])),axis = 0)
+                parent = len(nodes)-1 
+        else:
+            end = 1
+    if end == 0:
+        reached_end = 1
+    else: 
+        reached_end = 0
+    print "reached_end"
+    print reached_end
+    print "fake distance"
+    print num_points*step
+    return reached_end 
 
 def RRT_handler(data):
     global nodes
+    global edges
     global stepSize
     goal = numpy.asarray(data.goal)
     start = numpy.asarray(data.start)
@@ -65,13 +100,17 @@ def RRT_handler(data):
     print "qrand"
     print q_rand
     # get q_near
-    q_near = nearest_neighbor(q_rand)
+    dist, index, q_near = nearest_neighbor(q_rand)
     print "qnear"
     print q_near
     # get point some distance from q_near
-    q_new = (q_rand - q_near)/numpy.linalg.norm(q_rand - q_near) * stepSize + q_near
-    print "qnew"
-    print q_new
+    #q_new = (q_rand - q_near)/numpy.linalg.norm(q_rand - q_near) * stepSize + q_near
+    #print "qnew"
+    #print q_new
+    reached_rand = line_to_point(stepSize, dist, index, q_near, q_rand, 1)
+    print "nodes"
+    print nodes[0]
+    print nodes[-1]
     # check collision for q_new
     # check for collision between q_new and q_goal
     # if collision between q_new and q_goal but no collision for q_new, add vertex and add edge
