@@ -10,6 +10,7 @@ from baxter_pykdl import baxter_kinematics
 import numpy
 import random
 import scipy.spatial
+from collision_checker.srv import CheckCollision
 
 from njllrd_proj2.srv import *
 from njllrd_proj2.msg import *
@@ -46,11 +47,7 @@ def sample_point():
 
 def nearest_neighbor(q_rand):
     global nodes
-    print "nodes"
-    print nodes
     tree = scipy.spatial.KDTree(nodes[:,0:7])    # configurations need to be row numpy arrays
-    print "tree"
-    print tree.data
     d, i = tree.query(q_rand)          # returns ("distance to nearest neighbors", index of nearest neighbor --- we want index)
     q_near = tree.data[i]
     return d,i,q_near
@@ -59,10 +56,10 @@ def line_to_point(step,distance,index,q_near,q_rand, add_to_tree):
     global nodes
     global edges
     num_points = int(distance/step)
-    print "distance"
+    '''print "distance"
     print distance
     print "num_points"
-    print num_points 
+    print num_points '''
     q_prev = q_near 
     parent = index
     end = 0
@@ -70,7 +67,10 @@ def line_to_point(step,distance,index,q_near,q_rand, add_to_tree):
         q_next = (q_rand - q_near)/distance*stepSize*i + q_near
         collide = 0
         # collision check q_next
-        if not collide:
+        request = rospy.ServiceProxy('/check_collision', CheckCollision)
+        rospy.wait_for_service('/check_collision')
+        result = request(String('left'),q_next)  
+        if not result.collision:
             if add_to_tree:
                 new_node = numpy.asarray([numpy.append(q_next, index)])
                 nodes = numpy.concatenate((nodes,new_node), axis = 0)
@@ -82,11 +82,26 @@ def line_to_point(step,distance,index,q_near,q_rand, add_to_tree):
         reached_end = 1
     else: 
         reached_end = 0
-    print "reached_end"
-    print reached_end
-    print "fake distance"
-    print num_points*step
+    #print "reached_end"
+    #print reached_end
+    #print "fake distance"
+    #print num_points*step
     return reached_end 
+
+def determine_path():
+    global nodes
+    global edges
+    path = numpy.array([nodes[-1,0:7]])
+    parent = nodes[-1,7]
+    while parent > -1:
+        path = numpy.concatenate((numpy.asarray([nodes[parent,0:7]]),path),axis=0)
+        parent = nodes[parent,7]
+        print parent
+    print "path"
+    print path
+    return path
+
+
 
 def RRT_handler(data):
     global nodes
@@ -95,32 +110,67 @@ def RRT_handler(data):
     goal = numpy.asarray(data.goal)
     start = numpy.asarray(data.start)
     nodes = numpy.array([numpy.append(start,-1)])
+    reached_goal = 0
     # generate random q
-    q_rand = sample_point()
-    print "qrand"
-    print q_rand
-    # get q_near
-    dist, index, q_near = nearest_neighbor(q_rand)
-    print "qnear"
-    print q_near
-    # get point some distance from q_near
-    #q_new = (q_rand - q_near)/numpy.linalg.norm(q_rand - q_near) * stepSize + q_near
-    #print "qnew"
-    #print q_new
-    reached_rand = line_to_point(stepSize, dist, index, q_near, q_rand, 1)
-    print "nodes"
-    print nodes[0]
-    print nodes[-1]
-    # check collision for q_new
-    # check for collision between q_new and q_goal
-    # if collision between q_new and q_goal but no collision for q_new, add vertex and add edge
-    # else if no collision between q_new and q_goal and no collision for q_new
-    # add vertex and edge. Then add goal as vertex and edge. Then exit  for loop
+    print "starting loop"
+    while not reached_goal:
 
-    # get path from edges and vertices 
-    
-    # add or dont add to tree (edge and node)
-    # check if can see q_goal
+        q_rand = sample_point()
+        #print "qrand"
+        #print q_rand
+        # get q_near
+        dist, index, q_near = nearest_neighbor(q_rand)
+        #print "qnear"
+        #print q_near
+        # get point some distance from q_near
+        #q_new = (q_rand - q_near)/numpy.linalg.norm(q_rand - q_near) * stepSize + q_near
+        #print "qnew"
+        #print q_new
+        reached_rand = line_to_point(stepSize, dist, index, q_near, q_rand, 1)
+        #print "nodes"
+        #print nodes[0]
+        #print nodes[-1]
+        print "reached_rand"
+        print reached_rand
+        goal_dist = numpy.linalg.norm(goal-nodes[-1,0:7])
+        #node_length_test = len(nodes)
+        reached_goal = line_to_point(stepSize,goal_dist,len(nodes)-1, nodes[-1,0:7], goal, 0)
+        print reached_goal
+        if reached_goal:
+            new_node = numpy.asarray([numpy.append(goal, len(nodes)-1)])
+            nodes = numpy.concatenate((nodes,new_node), axis = 0)
+            edges = numpy.concatenate((edges,numpy.array([[len(nodes)-2,len(nodes)-1]])),axis = 0)
+            print "start"
+            print start
+            print "goal"
+            print goal
+            print "nodes"
+            print nodes
+            print len(nodes)
+            print "edges"
+            print edges
+    path = determine_path()
+
+
+        #print "NEW TEST"
+        #print goal
+        #print "nodes"
+        #print nodes
+        #print "edges"
+        #print edges
+        #print nodes[node_length_test-1]
+        #print nodes[node_length_test]
+        #print nodes[-1]
+        # check collision for q_new
+        # check for collision between q_new and q_goal
+        # if collision between q_new and q_goal but no collision for q_new, add vertex and add edge
+        # else if no collision between q_new and q_goal and no collision for q_new
+        # add vertex and edge. Then add goal as vertex and edge. Then exit  for loop
+
+        # get path from edges and vertices 
+        
+        # add or dont add to tree (edge and node)
+        # check if can see q_goal
 
     return []
 
