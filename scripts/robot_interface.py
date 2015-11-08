@@ -49,10 +49,10 @@ def move_to_point(initial_point,point):
     correct_vector = x_goal-x_init
     correct_dist = numpy.linalg.norm(correct_vector)
     correct_vector = correct_vector/correct_dist
-    print "x_init"
-    print x_init
-    print "x_goal"
-    print x_goal 
+    #print "x_init"
+    #print x_init
+    #print "x_goal"
+    #print x_goal 
     at_goal = False
     #vel_mag = 0.02
     vel_mag = .02
@@ -77,30 +77,18 @@ def move_to_point(initial_point,point):
         x0   = limb.endpoint_pose()   # current pose
         x0orientation = x0['orientation']
         x0   = x0['position']
-        #print "x_0 unrotated"
-        #print x0
+
         x0rotmax = quaternion_to_rotation(x0orientation[0],x0orientation[1],x0orientation[2],x0orientation[3])
         # offset vector. Add rotated offset vector to x0 to get desired end effector position 
         offset_vector = numpy.array([0,0,tool_length])
         rotated_offset = numpy.dot(x0rotmax,offset_vector)
 
         x0 = numpy.array([x0.x+rotated_offset[0,0], x0.y+rotated_offset[0,1], x0.z+rotated_offset[0,2]])
-        #print "x0 at tool tip"
-        #print x0
 
-        '''print"x0"
-        print x0
-        print "x_goal"
-        print x_goal'''
 
         distTraveled = numpy.linalg.norm(x0-x_init)
-        '''distTraveled = distTraveled + numpy.linalg.norm(x0-x0last)/4
-        print "HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH"
-        print numpy.linalg.norm(x0-x0last)
-        print "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDdd"
-        print vel_mag*0.002'''
+        
 
-        #uncomment when ready to try feedback stuff
         deltaT = rospy.get_time() - time_initial;
         correct_x = correct_vector*vel_mag*deltaT+x_init
         error = x0 - correct_x
@@ -128,8 +116,8 @@ def move_to_point(initial_point,point):
             J = kinematics.jacobian()
             J_T = kinematics.jacobian_transpose()
             J_psuinv  = kinematics.jacobian_pseudo_inverse()
-            print "vdes"
-            print v_des
+            #print "vdes"
+            #print v_des
             initial_objective = numpy.sqrt(numpy.linalg.det(numpy.dot(J,J_T)))
             
             q0 = limb.joint_angles()
@@ -199,14 +187,14 @@ def move_to_point(initial_point,point):
 
            
             q_dot = numpy.dot(J_psuinv,v_des) + numpy.dot((numpy.identity(7)-numpy.dot(J_psuinv,J)),numpy.transpose(b))
-            print "first half"
-            print numpy.dot(J_psuinv,v_des)
-            print "second half"
-            print numpy.dot((numpy.identity(7)-numpy.dot(J_psuinv,J)),numpy.transpose(b))
+            #print "first half"
+            #print numpy.dot(J_psuinv,v_des)
+            #print "second half"
+            #print numpy.dot((numpy.identity(7)-numpy.dot(J_psuinv,J)),numpy.transpose(b))
             q_dot = q_dot.tolist()
             q_dot = q_dot[0]
-            print "qdot"
-            print q_dot
+            #print "qdot"
+            #print q_dot
             
             # Previous lines are objective function
 
