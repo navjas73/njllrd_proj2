@@ -78,112 +78,6 @@ def controller():
 
         #points.points.append(make_point_from_array(first_point_rot_trans))
         #points.points.append(make_point_from_array(second_point_rot_trans))
-        
-        
-
-        print "pointc"
-        print pointc
-
-        request = rospy.ServiceProxy('connect_waypoints', connect_waypoints)
-        
-        stroke_request = waypoints()
-        #Try to draw an A
-        data = a()
-        for stroke in data[:-1]: # Get all but the last, which is the point to end on
-            print "stroke"
-            print stroke
-            new_stroke = numpy.array([])
-            first_point = True
-            for orig_point in stroke:
-                print "original point"
-                print orig_point
-                print "scaled point"
-                new_point = scale_factor*orig_point
-                print new_point
-                new_point = numpy.dot(R,new_point)
-                print "new point"
-                print new_point
-                
-                if first_point == True:
-                    new_stroke = new_point
-                    first_point = False
-                else:
-                    new_stroke = numpy.vstack((new_stroke, new_point))
-    
-            for new_stroke_point in new_stroke:
-                
-                new_stroke_point = new_stroke_point+pointc
-                
-                stroke_request.points.append(make_point_from_array(new_stroke_point))
-
-            
-            # Before we start writing, lift pen and move to first point
-            go_to_stroke = move_between_strokes(stroke_request,R)
-            print "move to starting point - go_to_stroke"
-            print go_to_stroke
-            output = request(go_to_stroke)
-
-            # Send stroke
-            print "stroke_request"     
-            print stroke_request       
-            output = request(stroke_request)
-            
-            # clear stroke_request for next stroke
-            stroke_request = waypoints()
-
-        # After writing a letter, need to move over to next spot
-        space_point = waypoints()
-        p_end = data[-1]
-        p_end = scale_factor * p_end
-        p_end[1] = p_end[1] - .02
-        p_end = numpy.dot(R,p_end)+pointc
-        pointc = p_end
-        space_point.points.append(make_point_from_array(p_end))
-        go_to_stroke = move_between_strokes(space_point,R)
-        output = request(go_to_stroke)
-
-
-        data = b()
-        for stroke in data[:-1]: # Get all but the last, which is the point to end on
-            print "stroke"
-            print stroke
-            new_stroke = numpy.array([])
-            first_point = True
-            for orig_point in stroke:
-                print "original point"
-                print orig_point
-                print "scaled point"
-                new_point = scale_factor*orig_point
-                print new_point
-                new_point = numpy.dot(R,new_point)
-                print "new point"
-                print new_point
-                
-                if first_point == True:
-                    new_stroke = new_point
-                    first_point = False
-                else:
-                    new_stroke = numpy.vstack((new_stroke, new_point))
-    
-            for new_stroke_point in new_stroke:
-                
-                new_stroke_point = new_stroke_point+pointc
-                
-                stroke_request.points.append(make_point_from_array(new_stroke_point))
-
-            # Before we start writing, lift pen and move to first point
-            go_to_stroke = move_between_strokes(stroke_request,R)
-            print "move to starting point - go_to_stroke"
-            print go_to_stroke
-            output = request(go_to_stroke)
-
-            # Send stroke
-            print "stroke_request"     
-            print stroke_request       
-            output = request(stroke_request)
-            
-            # clear stroke_request for next stroke
-            stroke_request = waypoints()
 
 
     elif rospy.get_param('/mode')=="RRT":
@@ -203,7 +97,7 @@ def controller():
         pointa = numpy.array([point1.endpoint.x, point1.endpoint.y, point1.endpoint.z])
         pointb = numpy.array([point2.endpoint.x, point2.endpoint.y, point2.endpoint.z])
         pointc = numpy.array([point3.endpoint.x, point3.endpoint.y, point3.endpoint.z])
-        
+        first_point_c = pointc
         plane_vec = numpy.cross(pointa-pointb, pointb-pointc)
         plane_normal = plane_vec/numpy.linalg.norm(plane_vec)
         R = make_rotation_matrix(plane_normal)

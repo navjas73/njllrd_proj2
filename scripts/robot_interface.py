@@ -29,8 +29,9 @@ kinematics = None
 joint_names = None
 tol         = None
 points = None
-tool_length = .170
+tool_length = .140
 joint_limits = None
+initial_orientation = None
 
 def move_to_point(initial_point,point):
 # if q_next in reachable_workspace 
@@ -54,18 +55,22 @@ def move_to_point(initial_point,point):
     print x_goal 
     at_goal = False
     #vel_mag = 0.02
-    vel_mag = .025
-    #kp = .5
-    kp = .5
+    vel_mag = .02
+    kp = .4
     deltaT = 0
     x0last = x_init;
     sleep_time = .005
+    delta_q = .1
+    
+    global initial_orientation
     #uncomment when you don't want to recalculate position every time
     #x0   = x_init
     
     time_initial = rospy.get_time();
     deltaT  =  0;
     while not at_goal:
+        if initial_orientation == None:
+            initial_orientation = limb.endpoint_pose()['orientation']
         limb.exit_control_mode()
         #recalculating position every time
         #comment when set position once
@@ -121,97 +126,96 @@ def move_to_point(initial_point,point):
             v_des = numpy.append(v_des, [0.0,0.0,0.0]) # calculate desired velocity, zero angular velocities
             
             J = kinematics.jacobian()
+            J_T = kinematics.jacobian_transpose()
             J_psuinv  = kinematics.jacobian_pseudo_inverse()
-            #print "vdes"
-            #print v_des
-            '''print "jpsu"
-            print J_psuinv'''
+            print "vdes"
+            print v_des
+            initial_objective = numpy.sqrt(numpy.linalg.det(numpy.dot(J,J_T)))
+            
+            q0 = limb.joint_angles()
+            
 
-            first = True
-            '''
-            for n in range(1,3):
-                b = numpy.random.rand(1,7)
-                b = .00001*b
-                #b = numpy.array([0,0,0,0,0,0,0])
-                #print b
-                #print J_psuinv
-                #print J
-                #print "vdes"
-                #print v_des
-                #print "numpy.dot(Jpsu, vdes"
-                #print numpy.dot(J_psuinv,v_des)
-                #prod1 = numpy.dot(J_psuinv,v_des) 
-                #print (numpy.identity(7)-numpy.dot(J_psuinv,J))
-                #print b[0]
-                #print numpy.transpose(b)
-                #print numpy.dot((numpy.identity(7)-numpy.dot(J_psuinv,J)),numpy.transpose(b))
-
-                q_dot = numpy.transpose(numpy.dot(J_psuinv,v_des)) + numpy.dot((numpy.identity(7)-numpy.dot(J_psuinv,J)),numpy.transpose(b))
-                #print "qdot"
-                #print q_dot
-                
-                q = limb.joint_angles()
-                
-                q_current = numpy.array([[0],[0],[0],[0],[0],[0],[0]])
-                for key, value in q.iteritems():
+            for key, value in q0.iteritems():
                     if key == 'left_s0':
-                        q_current[0] = value
+                        temp_value = value
+                        q0[key] = value + delta_q
+                        J = kinematics.jacobian(q0)
+                        J_T = kinematics.jacobian_transpose(q0)
+                        s0_objective = numpy.sqrt(numpy.linalg.det(numpy.dot(J,J_T)))
+                        q0[key] = temp_value
                     elif key == 'left_s1':
-                        q_current[1] = value
+                        temp_value = value
+                        q0[key] = value + delta_q
+                        J = kinematics.jacobian(q0)
+                        J_T = kinematics.jacobian_transpose(q0)
+                        s1_objective = numpy.sqrt(numpy.linalg.det(numpy.dot(J,J_T)))
+                        q0[key] = temp_value
                     elif key == 'left_e0':
-                        q_current[2] = value
+                        temp_value = value
+                        q0[key] = value + delta_q
+                        J = kinematics.jacobian(q0)
+                        J_T = kinematics.jacobian_transpose(q0)
+                        e0_objective = numpy.sqrt(numpy.linalg.det(numpy.dot(J,J_T)))
+                        q0[key] = temp_value
                     elif key == 'left_e1':
-                        q_current[3] = value
+                        temp_value = value
+                        q0[key] = value + delta_q
+                        J = kinematics.jacobian(q0)
+                        J_T = kinematics.jacobian_transpose(q0)
+                        e1_objective = numpy.sqrt(numpy.linalg.det(numpy.dot(J,J_T)))
+                        q0[key] = temp_value
                     elif key == 'left_w0':
-                        q_current[4] = value
+                        temp_value = value
+                        q0[key] = value + delta_q
+                        J = kinematics.jacobian(q0)
+                        J_T = kinematics.jacobian_transpose(q0)
+                        w0_objective = numpy.sqrt(numpy.linalg.det(numpy.dot(J,J_T)))
+                        q0[key] = temp_value
                     elif key == 'left_w1':
-                        q_current[5] = value
+                        temp_value = value
+                        q0[key] = value + delta_q
+                        J = kinematics.jacobian(q0)
+                        J_T = kinematics.jacobian_transpose(q0)
+                        w1_objective = numpy.sqrt(numpy.linalg.det(numpy.dot(J,J_T)))
+                        q0[key] = temp_value
                     elif key == 'left_w2':
-                        q_current[6] = value
-
-                obj = 0
-                best_obj_value = 100000000
-                best_obj_b = 0
-
-                q_next = q_current+q_dot*sleep_time
-                #print "qnext"
-                #print q_next
-                high = joint_limits[:,1]
-                low = joint_limits[:,0]
-                obj = numpy.divide(1.0,numpy.power((high-q_next),2))+numpy.divide(1.0,numpy.power((low-q_next),2))
-                obj_sum = numpy.sum(obj)
-                #print obj_sum
-                #obj_sum = obj_sum + 1/numpy.power((0-q_next[0,1]),2) + 1/numpy.power((0-q_next[0,3]),2) + 1/numpy.power((0-q_next[0,5]),2)
-                #print obj_sum
-                #print q_dot
-
-                if (obj_sum < best_obj_value or first == True):
-                    best_obj_value = obj_sum
-                    best_obj_b = b
-                    best_obj_qdot = q_dot
+                        temp_value = value
+                        q0[key] = value + delta_q
+                        J = kinematics.jacobian(q0)
+                        J_T = kinematics.jacobian_transpose(q0)
+                        w2_objective = numpy.sqrt(numpy.linalg.det(numpy.dot(J,J_T)))
+                        q0[key] = temp_value
 
 
-
-                first = False
+            b = numpy.array([s0_objective, s1_objective, e0_objective, e1_objective, w0_objective, w1_objective, w2_objective])
+            b = b-initial_objective
+            b = b/delta_q
+            b = b*.001
 
 
 
 
-            q_dot = best_obj_qdot
-            
-            
-            
+
+
+           
+            q_dot = numpy.dot(J_psuinv,v_des) + numpy.dot((numpy.identity(7)-numpy.dot(J_psuinv,J)),numpy.transpose(b))
+            print "first half"
+            print numpy.dot(J_psuinv,v_des)
+            print "second half"
+            print numpy.dot((numpy.identity(7)-numpy.dot(J_psuinv,J)),numpy.transpose(b))
             q_dot = q_dot.tolist()
-            q_dot = numpy.transpose(q_dot)[0]
-            #print "qdot"
-            #print q_dot
-            '''
+            q_dot = q_dot[0]
+            print "qdot"
+            print q_dot
+            
             # Previous lines are objective function
 
             # Following three commands are used when objective function is off
-            q_dot = numpy.dot(J_psuinv,v_des)
-            q_dot = q_dot.tolist()
-            q_dot = q_dot[0]
+            #q_dot = numpy.dot(J_psuinv,v_des)
+            #q_dot = q_dot.tolist()
+            #q_dot = q_dot[0]
+            #print "q_dot"
+            #print q_dot
 
             joint_command = dict(zip(joint_names,q_dot))
             #print "joint_command"
@@ -220,14 +224,16 @@ def move_to_point(initial_point,point):
             '''print "joint velocities"
             print limb.joint_velocities()'''
             #did this to try to set the rate of setting commands... didn't work
-            sleep(sleep_time)
+            #sleep(sleep_time)
             #x0last = x0 
     return True
 
 def move_to_initial_point(point):
-  
-    x0   = limb.endpoint_pose()   # current pose
-    x0orientation = x0['orientation']
+    global initial_orientation
+    if initial_orientation == None:
+        initial_orientation = limb.endpoint_pose()['orientation']
+    
+    x0orientation = initial_orientation
        
     x0rotmax = quaternion_to_rotation(x0orientation[0],x0orientation[1],x0orientation[2],x0orientation[3])
 
