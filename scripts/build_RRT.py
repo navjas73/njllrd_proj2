@@ -67,10 +67,10 @@ def line_to_point(step,distance,index,q_near,q_rand, add_to_tree):
         q_next = (q_rand - q_near)/distance*stepSize*i + q_near
         collide = 0
         # collision check q_next
-        request = rospy.ServiceProxy('/check_collision', CheckCollision)
-        rospy.wait_for_service('/check_collision')
-        result = request(String('left'),q_next)  
-        if not result.collision:
+        #request = rospy.ServiceProxy('/check_collision', CheckCollision)
+        #rospy.wait_for_service('/check_collision')
+        #result = request(String('left'),q_next)  
+        if not collide:
             if add_to_tree:
                 new_node = numpy.asarray([numpy.append(q_next, index)])
                 nodes = numpy.concatenate((nodes,new_node), axis = 0)
@@ -96,9 +96,6 @@ def determine_path():
     while parent > -1:
         path = numpy.concatenate((numpy.asarray([nodes[parent,0:7]]),path),axis=0)
         parent = nodes[parent,7]
-        print parent
-    print "path"
-    print path
     return path
 
 
@@ -150,6 +147,11 @@ def RRT_handler(data):
             print "edges"
             print edges
     path = determine_path()
+    new_path = numpy.array([])
+    for i in path:
+        path_point = single_config()
+        path_point.config = i
+        new_path = numpy.append(new_path, path_point)
 
 
         #print "NEW TEST"
@@ -170,9 +172,8 @@ def RRT_handler(data):
         # get path from edges and vertices 
         
         # add or dont add to tree (edge and node)
-        # check if can see q_goal
-
-    return []
+        # check if can see q_goal 
+    return new_path
 
 def build_RRT():
     rospy.init_node('build_RRT')

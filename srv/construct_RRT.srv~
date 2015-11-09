@@ -1,3 +1,4 @@
-float64[] finishstart
+float64[] goal
+float64[] start
 ---
-float64[] path
+float64[][] path

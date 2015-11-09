@@ -86,7 +86,11 @@ def controller():
         rospy.wait_for_service('construct_RRT')
         request = rospy.ServiceProxy('construct_RRT', construct_RRT)
         output = request(point1.config, point2.config)  
-        print output     
+        rospy.wait_for_service('connect_configs')
+        request_config = rospy.ServiceProxy('connect_configs', connect_configs)
+        success = request_config(output.path)   
+        print success
+        print output.path 
     
     elif rospy.get_param('/mode') == "typewriter":
         scale_factor = 0.007
@@ -294,6 +298,8 @@ def move_between_strokes(stroke_request,R):
     go_to_stroke.points.append(make_point_from_array(over_start))
     go_to_stroke.points.append(make_point_from_array(start_point))
     return go_to_stroke
+
+
 
 def a():
 	s_1 = numpy.array([[5,-3,0],[5,-7,0]])
