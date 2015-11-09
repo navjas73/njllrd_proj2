@@ -29,7 +29,7 @@ kinematics = None
 joint_names = None
 tol         = None
 points = None
-tool_length = .140
+tool_length = .080
 joint_limits = None
 initial_orientation = None
 
@@ -56,11 +56,11 @@ def move_to_point(initial_point,point):
     at_goal = False
     #vel_mag = 0.02
     vel_mag = .02
-    kp = .4
+    kp = .3
     deltaT = 0
     x0last = x_init;
     sleep_time = .005
-    delta_q = .1
+    delta_q = .02
     
     global initial_orientation
     #uncomment when you don't want to recalculate position every time
@@ -69,9 +69,7 @@ def move_to_point(initial_point,point):
     time_initial = rospy.get_time();
     deltaT  =  0;
     while not at_goal:
-        if initial_orientation == None:
-            initial_orientation = limb.endpoint_pose()['orientation']
-        limb.exit_control_mode()
+        #limb.exit_control_mode()
         #recalculating position every time
         #comment when set position once
         x0   = limb.endpoint_pose()   # current pose
@@ -178,7 +176,7 @@ def move_to_point(initial_point,point):
             b = numpy.array([s0_objective, s1_objective, e0_objective, e1_objective, w0_objective, w1_objective, w2_objective])
             b = b-initial_objective
             b = b/delta_q
-            b = b*.001
+            b = b*.0000000001
 
 
 
@@ -186,22 +184,22 @@ def move_to_point(initial_point,point):
 
 
            
-            q_dot = numpy.dot(J_psuinv,v_des) + numpy.dot((numpy.identity(7)-numpy.dot(J_psuinv,J)),numpy.transpose(b))
+            #q_dot = numpy.dot(J_psuinv,v_des) + numpy.dot((numpy.identity(7)-numpy.dot(J_psuinv,J)),numpy.transpose(b))
             #print "first half"
             #print numpy.dot(J_psuinv,v_des)
             #print "second half"
             #print numpy.dot((numpy.identity(7)-numpy.dot(J_psuinv,J)),numpy.transpose(b))
-            q_dot = q_dot.tolist()
-            q_dot = q_dot[0]
+            #q_dot = q_dot.tolist()
+           # q_dot = q_dot[0]
             #print "qdot"
             #print q_dot
             
             # Previous lines are objective function
 
             # Following three commands are used when objective function is off
-            #q_dot = numpy.dot(J_psuinv,v_des)
-            #q_dot = q_dot.tolist()
-            #q_dot = q_dot[0]
+            q_dot = numpy.dot(J_psuinv,v_des)
+            q_dot = q_dot.tolist()
+            q_dot = q_dot[0]
             #print "q_dot"
             #print q_dot
 
@@ -217,11 +215,10 @@ def move_to_point(initial_point,point):
     return True
 
 def move_to_initial_point(point):
-    global initial_orientation
-    if initial_orientation == None:
-        initial_orientation = limb.endpoint_pose()['orientation']
+    x0 = limb.endpoint_pose()
+
     
-    x0orientation = initial_orientation
+    x0orientation = x0['orientation']
        
     x0rotmax = quaternion_to_rotation(x0orientation[0],x0orientation[1],x0orientation[2],x0orientation[3])
 
@@ -251,7 +248,7 @@ def command_handler(data):
             print "to point: "
             print point
             x = move_to_point(data.points.points[i-1],point)
-            
+            time.sleep(.5)
         else:
         	x = move_to_initial_point(point)
         i = i+1

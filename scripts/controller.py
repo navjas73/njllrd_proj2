@@ -89,7 +89,7 @@ def controller():
         print output     
     
     elif rospy.get_param('/mode') == "typewriter":
-        scale_factor = 0.01
+        scale_factor = 0.007
         done = False
         point1, point2, point3 = get_plane_points()
         points = waypoints()
@@ -313,7 +313,7 @@ def c():
 	return s_1,p_end
 
 def d():
-	s_1 = numpy.array([[2,-8,0],[1,-1,0],[9,-1,0],[8,-8,0]])
+	s_1 = numpy.array([[3,-8,0],[1,-1,0],[9,-1,0],[7,-8,0],[3,-8,0]])
 	p_end = numpy.array([1,-8,0])
 	return s_1,p_end
 
@@ -377,7 +377,7 @@ def n():
 	return s_1, p_end
 
 def o():
-	s_1 = numpy.array([[1,-8,0],[1,-1,0],[9,-9,0],[9,-8,0],[1,-8,0]])
+	s_1 = numpy.array([[1,-8,0],[1,-1,0],[9,-1,0],[9,-9,0],[9,-8,0],[1,-8,0]])
 	p_end = numpy.array([1,-8,0])
 	return s_1, p_end
 
@@ -420,9 +420,9 @@ def v():
 	return s_1, p_end
 
 def w():
-	s_1 = numpy.array([[9,-1,0],[1,-3,0],[9,-5,0],[1,-7,0],[9,-9,0]])
-	p_end = numpy.array([1,-9,0])
-	return s_1, p_end
+    s_1 = numpy.array([[9,-1,0],[1,-3,0],[9,-5,0],[1,-7,0],[9,-9,0]])
+    p_end = numpy.array([1,-9,0])
+    return s_1, p_end
 	
 def x():
 	s_1 = numpy.array([[1,-1,0],[9,-9,0]])
