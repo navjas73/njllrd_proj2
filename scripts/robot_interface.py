@@ -314,7 +314,6 @@ def quaternion_to_rotation(qx,qy,qz,qw):
     return rotation_matrix
 
 
-
 def request_kinematics(position, quaternion, side):
     # rospy.init_node("rsdk_ik_service_client")
     ns    = "ExternalTools/" + side + "/PositionKinematicsNode/IKService"
@@ -348,6 +347,13 @@ def request_kinematics(position, quaternion, side):
         print("INVALID POSE - No Valid Joint Solution Found.")
     return False
 
+def handle_connect_configs(data):
+    path = numpy.asarray(data.path)
+    for i in path:
+        print i.config
+
+    return True
+
 def robot_interface():
     rospy.init_node('robot_interface')
     
@@ -361,6 +367,8 @@ def robot_interface():
     s = rospy.Service('request_endpoint', request_endpoint, handle_request_endpoint)
 
     a = rospy.Service('request_orientation', request_orientation, handle_request_orientation)
+
+    k = rospy.Service('connect_configs', connect_configs, handle_connect_configs)
 
     global joint_limits
     global limb 

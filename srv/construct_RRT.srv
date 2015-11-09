@@ -1,4 +1,4 @@
 float64[] goal
 float64[] start
 ---
-float64[] path
+single_config[] path
