@@ -124,7 +124,10 @@ def controller():
             print letter
             if letter == 'end':
                 done == True
-            else:
+            elif letter == 'return':
+            	pointc[0] = first_point_c[0]-10*scale_factor
+            	pointc[1] = first_point_c[1]
+            elif letter.isalpha() and len(letter) < 2:
                 possibles = globals().copy()
                 possibles.update(locals())
                 method = possibles.get(letter)
