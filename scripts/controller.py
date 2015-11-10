@@ -460,6 +460,28 @@ def z():
 	p_end = numpy.array([1,-9,0])
 	return s_1, s_2, p_end
 
-
+def maze():
+	s_1 = numpy.array([[7,-1,0],[7,-3,0],[9,-3,0],[9,-7,0],[3,-6,0],[3,-8,0]])
+	s_2 = numpy.array([[3,-4,0],[3,-6,0]])
+	s_3 = numpy.array([[1,-8,0],[1,-2,0],[5,-3,0],[5,-5,0],[7,-5,0]])
+	s_4 = numpy.array([[5,-1,0],[5,-3,0]])
+	s_5 = numpy.array([[6,-1,0],[6,-2,0]])
+	s_6 = numpy.array([[6,-3,0],[6,-4,0]])
+	s_7 = numpy.array([[7,-4,0],[8,-4,0]])
+	s_8 = numpy.array([[8,-5,0],[8,-6,0]])
+	s_9 = numpy.array([[7,-6,0],[6,-6,0]])
+	s_10 = numpy.array([[5,-6,0],[4,-6,0]])
+	s_11 = numpy.array([[4,-5,0],[4,-4,0]])
+	s_12 = numpy.array([[3,-4,0],[2,-4,0]])
+	s_13 = numpy.array([[2,-5,0],[2,-6,0]])
+	s_14 = numpy.array([[2,-7,0],[2,-8,0]])
+	p_end = numpy.array([[1,-9,0]])
+	return s_1,s_2,s_3,s_4,s_5,s_6,s_7,s_8,s_9,s_10,s_11,s_12,s_13,s_14,p_end
+	
+def pyramids():
+	
+	
+	
+	
 if __name__ == "__main__":
     controller()
