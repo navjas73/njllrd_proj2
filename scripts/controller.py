@@ -479,7 +479,14 @@ def maze():
 	return s_1,s_2,s_3,s_4,s_5,s_6,s_7,s_8,s_9,s_10,s_11,s_12,s_13,s_14,p_end
 	
 def pyramids():
-	
+	s_1 = numpy.array([[0,0,0],[4,-3,0],[0,-7,0]])
+	s_2 = numpy.array([[0,-1,0],[4,-3,0]])
+	s_3 = numpy.array([[3,-4,0],[6,-7,0],[0,-13,0]])
+	s_4 = numpy.array([[2,-5,0],[6,-7,0]])
+	s_5 = numpy.array([[2,-11,0],[4,-13,0],[0,-17,0]])
+	s_6 = numpy.array([[1,-12,0],[4,-13,0]])
+	p_end = numpy.array([[1,-17,0]])
+	return s_1,s_2,s_3,s_4,s_5,s_6,p_end
 	
 	
 	
