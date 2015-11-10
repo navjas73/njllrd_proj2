@@ -346,9 +346,51 @@ def request_kinematics(position, quaternion, side):
 
 def handle_connect_configs(data):
     path = numpy.asarray(data.path)
-    for i in path:
-        print i.config
+    print path
+    goal = numpy.asarray(path[-1].config)
+    for i in range(0,len(path)-1):
+        q = numpy.asarray(path[i].config)
+        q_next = numpy.asarray(path[i+1].config)
+        reached_point = reach_goal(q,q_next)
+        #joint_command = dict(zip(joint_names,q_dot))
+        #print "joint_command"
+        #print joint_command
+        #limb.set_joint_velocities(joint_command)
 
+    return True
+
+def reach_goal(start, goal):
+    at_goal = 0 
+    totDist = numpy.linalg.norm(goal-start)
+    while not at_goal:
+        q = limb.joint_angles()
+        q_current = numpy.array([0.0,0.0,0.0,0.0,0.0,0.0,0.0])
+        for key, value in q.iteritems():
+            if key == 'left_s0':
+                q_current[0] = value
+            elif key == 'left_s1':
+                q_current[1] = value
+            elif key == 'left_e0':
+                q_current[2] = value
+            elif key == 'left_e1':
+                q_current[3] = value
+            elif key == 'left_w0':
+                q_current[4] = value
+            elif key == 'left_w1':
+                q_current[5] = value
+            elif key == 'left_w2':
+                q_current[6] = value
+        dist = numpy.linalg.norm(goal-q_current)
+        distTraveled = numpy.linalg.norm(q_current-start)
+        q_dot = (goal-q_current)/dist*0.1; 
+        if distTraveled >= totDist:
+            at_goal = True
+            print "within tolerance"
+            limb.exit_control_mode()
+            break
+        else:
+            joint_command = dict(zip(joint_names,q_dot))
+            limb.set_joint_velocities(joint_command)
     return True
 
 def robot_interface():

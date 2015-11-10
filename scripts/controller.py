@@ -91,6 +91,18 @@ def controller():
         success = request_config(output.path)   
         print success
         print output.path 
+
+    elif rospy.get_param('/mode')=="BIRRT":
+        point1, point2 = get_connect_points()
+        #goalstart = numpy.array([numpy.asarray(point1.config),numpy.asarray(point2.config)])
+        rospy.wait_for_service('construct_BIRRT')
+        request = rospy.ServiceProxy('construct_BIRRT', construct_BIRRT)
+        output = request(point1.config, point2.config)  
+        rospy.wait_for_service('connect_configs')
+        request_config = rospy.ServiceProxy('connect_configs', connect_configs)
+        success = request_config(output.path)   
+        print success
+        print output.path 
     
     elif rospy.get_param('/mode') == "typewriter":
         scale_factor = 0.007
@@ -166,7 +178,7 @@ def get_connect_points():
     while flag == False:
         x = 1
         #loop
-    if rospy.get_param('/mode') == "RRT":
+    if rospy.get_param('/mode') == "RRT" or rospy.get_param('/mode') == "BIRRT":
         point1 = request_config()
     else:
         point1 = request_position()
@@ -177,7 +189,7 @@ def get_connect_points():
         #loop
 
     #wait for user to hit enter
-    if rospy.get_param('/mode') == "RRT":
+    if rospy.get_param('/mode') == "RRT" or rospy.get_param('/mode') == "BIRRT":
         point2 = request_config()
     else:
         point2 = request_position()

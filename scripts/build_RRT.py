@@ -33,8 +33,10 @@ tol         = None
 points = None
 tool_length = .15
 joint_limits = None
-nodes = numpy.array([])
-edges = numpy.array([[-1,-1]])
+nodes_RRT = numpy.array([])
+edges_RRT = numpy.array([[-1,-1]])
+nodes_BIRRT = numpy.array([])
+edges_BIRRT = numpy.array([[-1,-1]])
 stepSize = 0.02
 
 def sample_point():
@@ -45,32 +47,32 @@ def sample_point():
         q_rand = numpy.append(q_rand,indv_joint_rand)
     return q_rand
 
-def nearest_neighbor(q_rand):
-    global nodes
+def nearest_neighbor(q_rand, nodes):
     tree = scipy.spatial.KDTree(nodes[:,0:7])    # configurations need to be row numpy arrays
     d, i = tree.query(q_rand)          # returns ("distance to nearest neighbors", index of nearest neighbor --- we want index)
     q_near = tree.data[i]
-    return d,i,q_near
+    return d,i,q_near, nodes
 
-def line_to_point(step,distance,index,q_near,q_rand, add_to_tree):
-    global nodes
-    global edges
+def line_to_point(step,distance,index,q_near,q_rand, add_to_tree, nodes, edges):
     num_points = int(distance/step)
-    '''print "distance"
+    print "distance"
     print distance
     print "num_points"
-    print num_points '''
+    print num_points 
     q_prev = q_near 
     parent = index
     end = 0
+    count = 0
     for i in range(1,num_points+1):
         q_next = (q_rand - q_near)/distance*stepSize*i + q_near
-        collide = 0
+        #collide = 0
         # collision check q_next
-        #request = rospy.ServiceProxy('/check_collision', CheckCollision)
-        #rospy.wait_for_service('/check_collision')
-        #result = request(String('left'),q_next)  
-        if not collide:
+        request = rospy.ServiceProxy('/check_collision', CheckCollision)
+        rospy.wait_for_service('/check_collision')
+        result = request(String('left'),q_next)  
+        if not result.collision:
+            count +=1
+        #if not collide:
             if add_to_tree:
                 new_node = numpy.asarray([numpy.append(q_next, index)])
                 nodes = numpy.concatenate((nodes,new_node), axis = 0)
@@ -84,13 +86,16 @@ def line_to_point(step,distance,index,q_near,q_rand, add_to_tree):
         reached_end = 0
     #print "reached_end"
     #print reached_end
-    #print "fake distance"
-    #print num_points*step
-    return reached_end 
+    print "fake distance"
+    print num_points*step
+    print "count"
+    print count
+    print "end"
+    print end
+    print reached_end
+    return reached_end, nodes, edges
 
-def determine_path():
-    global nodes
-    global edges
+def determine_path(nodes, edges):
     path = numpy.array([nodes[-1,0:7]])
     parent = nodes[-1,7]
     while parent > -1:
@@ -98,55 +103,96 @@ def determine_path():
         parent = nodes[parent,7]
     return path
 
-
-
-def RRT_handler(data):
-    global nodes
-    global edges
+def BIRRT_handler(data):
+    global nodes_BIRRT
+    global edges_BIRRT
     global stepSize
     goal = numpy.asarray(data.goal)
     start = numpy.asarray(data.start)
-    nodes = numpy.array([numpy.append(start,-1)])
+    nodes_RRT = numpy.array([numpy.append(start,-1)])
     reached_goal = 0
-    # generate random q
-    print "starting loop"
-    while not reached_goal:
+    start_goal, nodes_RRT, edges_RRT = line_to_point(stepSize, numpy.linalg.norm(goal-start), 0, start, goal, 0, nodes_RRT, edges_RRT)
+    print start_goal
+    if start_goal:
+        reached_goal = 1
+        path = numpy.array([start,goal])
+    else:
+        # generate random q
+        print "starting loop"
+        while not reached_goal:
+            q_rand = sample_point()
+            dist, index, q_near, nodes_RRT = nearest_neighbor(q_rand, nodes_RRT)
+            reached_rand, nodes_RRT, edges_RRT = line_to_point(stepSize, dist, index, q_near, q_rand, 1, nodes_RRT, edges_RRT)
+            print "reached_rand"
+            print reached_rand
+            goal_dist = numpy.linalg.norm(goal-nodes_RRT[-1,0:7])
+            reached_goal, nodes_RRT, edges_RRT = line_to_point(stepSize,goal_dist,len(nodes_RRT)-1, nodes_RRT[-1,0:7], goal, 0, nodes_RRT, edges_RRT)
+            print reached_goal
+            if reached_goal:
+                new_node = numpy.asarray([numpy.append(goal, len(nodes_RRT)-1)])
+                nodes_RRT = numpy.concatenate((nodes_RRT,new_node), axis = 0)
+                edges_RRT = numpy.concatenate((edges_RRT,numpy.array([[len(nodes_RRT)-2,len(nodes_RRT)-1]])),axis = 0)
+        path = determine_path(nodes_RRT, edges_RRT)
+    new_path = numpy.array([])
+    for i in path:
+        path_point = single_config()
+        path_point.config = i
+        new_path = numpy.append(new_path, path_point)
+    return new_path
 
-        q_rand = sample_point()
-        #print "qrand"
-        #print q_rand
-        # get q_near
-        dist, index, q_near = nearest_neighbor(q_rand)
-        #print "qnear"
-        #print q_near
-        # get point some distance from q_near
-        #q_new = (q_rand - q_near)/numpy.linalg.norm(q_rand - q_near) * stepSize + q_near
-        #print "qnew"
-        #print q_new
-        reached_rand = line_to_point(stepSize, dist, index, q_near, q_rand, 1)
-        #print "nodes"
-        #print nodes[0]
-        #print nodes[-1]
-        print "reached_rand"
-        print reached_rand
-        goal_dist = numpy.linalg.norm(goal-nodes[-1,0:7])
-        #node_length_test = len(nodes)
-        reached_goal = line_to_point(stepSize,goal_dist,len(nodes)-1, nodes[-1,0:7], goal, 0)
-        print reached_goal
-        if reached_goal:
-            new_node = numpy.asarray([numpy.append(goal, len(nodes)-1)])
-            nodes = numpy.concatenate((nodes,new_node), axis = 0)
-            edges = numpy.concatenate((edges,numpy.array([[len(nodes)-2,len(nodes)-1]])),axis = 0)
-            print "start"
-            print start
-            print "goal"
-            print goal
-            print "nodes"
-            print nodes
-            print len(nodes)
-            print "edges"
-            print edges
-    path = determine_path()
+def RRT_handler(data):
+    global nodes_RRT
+    global edges_RRT
+    global stepSize
+    goal = numpy.asarray(data.goal)
+    start = numpy.asarray(data.start)
+    nodes_RRT = numpy.array([numpy.append(start,-1)])
+    reached_goal = 0
+    start_goal, nodes_RRT, edges_RRT = line_to_point(stepSize, numpy.linalg.norm(goal-start), 0, start, goal, 0, nodes_RRT, edges_RRT)
+    print start_goal
+    if start_goal:
+        reached_goal = 1
+        path = numpy.array([start,goal])
+    else:
+        # generate random q
+        print "starting loop"
+        while not reached_goal:
+
+            q_rand = sample_point()
+            #print "qrand"
+            #print q_rand
+            # get q_near
+            dist, index, q_near, nodes_RRT = nearest_neighbor(q_rand, nodes_RRT)
+            #print "qnear"
+            #print q_near
+            # get point some distance from q_near
+            #q_new = (q_rand - q_near)/numpy.linalg.norm(q_rand - q_near) * stepSize + q_near
+            #print "qnew"
+            #print q_new
+            reached_rand, nodes_RRT, edges_RRT = line_to_point(stepSize, dist, index, q_near, q_rand, 1, nodes_RRT, edges_RRT)
+            #print "nodes"
+            #print nodes[0]
+            #print nodes[-1]
+            print "reached_rand"
+            print reached_rand
+            goal_dist = numpy.linalg.norm(goal-nodes_RRT[-1,0:7])
+            #node_length_test = len(nodes)
+            reached_goal, nodes_RRT, edges_RRT = line_to_point(stepSize,goal_dist,len(nodes_RRT)-1, nodes_RRT[-1,0:7], goal, 0, nodes_RRT, edges_RRT)
+            print reached_goal
+            if reached_goal:
+                new_node = numpy.asarray([numpy.append(goal, len(nodes_RRT)-1)])
+                nodes_RRT = numpy.concatenate((nodes_RRT,new_node), axis = 0)
+                edges_RRT = numpy.concatenate((edges_RRT,numpy.array([[len(nodes_RRT)-2,len(nodes_RRT)-1]])),axis = 0)
+                print "start"
+                print start
+                print "goal"
+                print goal
+                print "nodes"
+                print nodes_RRT
+                print len(nodes_RRT)
+                print "edges"
+                print edges_RRT
+        path = determine_path(nodes_RRT, edges_RRT)
     new_path = numpy.array([])
     for i in path:
         path_point = single_config()
@@ -180,6 +226,8 @@ def build_RRT():
     
     # Subscribes to waypoints from controller, sent in a set 
     z = rospy.Service('construct_RRT', construct_RRT, RRT_handler)
+
+    a = rospy.Service('construct_BIRRT', construct_BIRRT, BIRRT_handler)
 
     global joint_limits
     global limb 

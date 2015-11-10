@@ -42,6 +42,7 @@ add_message_files(
 FILES
 point.msg
 waypoints.msg
+single_config.msg
 )
 ## Generate services in the 'srv' folder
 add_service_files(
@@ -50,6 +51,7 @@ request_endpoint.srv
 connect_waypoints.srv
 request_orientation.srv
 construct_RRT.srv
+construct_BIRRT.srv
 connect_configs.srv
 #construct_RRT.srv
 )

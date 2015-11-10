@@ -51,6 +51,7 @@ request_endpoint.srv
 connect_waypoints.srv
 request_orientation.srv
 construct_RRT.srv
+construct_BIRRT.srv
 connect_configs.srv
 #construct_RRT.srv
 )
