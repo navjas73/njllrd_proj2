@@ -286,7 +286,7 @@ def smooth_path(path, nodes, edges):
         success, nodes, edges = line_to_point(stepSize,numpy.linalg.norm(test_point-point),0,point, test_point,0,nodes,edges)
         if success:
             #smoothed_path = smoothed_path[0:i] 
-            smoothed_path = numpy.concatenate((smoothed_path[0:i],smoothed_path[test_index:n-1]),axis=0)
+            smoothed_path = numpy.concatenate((smoothed_path[0:i+1],smoothed_path[test_index:n]),axis=0)
             print "test smoothed path"
             print smoothed_path 
             #smoothed_path.concatenate(smoothed_path[test_index:n-1])
