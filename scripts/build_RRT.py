@@ -234,11 +234,13 @@ def RRT_handler(data):
                 print edges_RRT
         # full numpy array path
         path = determine_path(nodes_RRT, edges_RRT,-1)
+        print path 
 
     # Smooth here
-    if path.size() > 2:
-        path = smooth_path(path,nodes_RRT,edges_RRT)
-
+    if len(path) > 3:
+        path, nodes_RRT, edges_RRT = smooth_path(path,nodes_RRT,edges_RRT)
+    print "final smoothed path"
+    print path 
     new_path = numpy.array([])
     #convert numpy path to service array
     for i in path:
@@ -268,20 +270,30 @@ def RRT_handler(data):
         # check if can see q_goal 
     return new_path
 def smooth_path(path, nodes, edges):
+    ''' roslaunch baxter_gazebo baxter_world.launch 
+    rosrun baxter_tools enable_robot.py -e
+    rosrun baxter_examples joint_position_keyboard.py 
+    llimb.set_joint_positions({'left_w0': 1, 'left_w1': -1.2, 'left_w2': 1.8721031098678509e-06, 'left_e0': 0.2, 'left_e1': 2, 'left_s0': -1.5, 'left_s1': -0.3})
+    '''
     
     i = 0
     smoothed_path = path
-    while i < smoothed_path.size()-2
-        n = smoothed_path.size()
+    while i < len(smoothed_path)-2:
+        n = len(smoothed_path)
         point = smoothed_path[i]
-        test_index = randint(i+2,n-1)
+        test_index = random.randint(i+2,n-1)
         test_point = smoothed_path[test_index]
         success, nodes, edges = line_to_point(stepSize,numpy.linalg.norm(test_point-point),0,point, test_point,0,nodes,edges)
         if success:
-            smoothed_path = smoothed_path[0:i] 
-            smoothed_path.append(smoothed_path[test_index:n-1])
+            #smoothed_path = smoothed_path[0:i] 
+            smoothed_path = numpy.concatenate((smoothed_path[0:i],smoothed_path[test_index:n-1]),axis=0)
+            print "test smoothed path"
+            print smoothed_path 
+            #smoothed_path.concatenate(smoothed_path[test_index:n-1])
         i = i+1
-    return smoothed_path
+
+
+    return smoothed_path, nodes, edges
 
 
 
