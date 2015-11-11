@@ -56,5 +56,5 @@ BIRRT
   .....
   
 Notes:
-Orienting the pen at 45 degrees for writing works best. 
-The control gain can be adjusted my changing kp in robot_interface.py
+  - Orienting the pen at 45 degrees for writing works best. 
+  - The control gain can be adjusted my changing kp in robot_interface.py
