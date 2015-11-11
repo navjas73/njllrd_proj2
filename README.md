@@ -18,7 +18,7 @@ How to select a mode:
   - BIRRT: Baxter will use a bi-directional RRT to navigate around obstacles
   
 Connect_points:
-  - run the launch file
+  - run the launch file with mode set to connect_points
   - move Baxter's arm to the first desired point
   - In a new terminal, connect to Baxter. From the ros_ws directory, publish a message to the "user_input" topic containing any string. Enter: "rostopic pub command std_msgs/String ANY_STRING_HERE".
   - Move Baxter's arm to the second desired point
@@ -26,7 +26,7 @@ Connect_points:
   - Baxter should move in a straight line
   
 Typewriter:
-  - run the launch file
+  - run the launch file with mode set to typewriter
   - Define the drawing plane
     - place Baxter's arm such that the marker tip is touching the board
     - From the ros_ws directory, publish a message to the "user_input" topic containing any string. Enter: "rostopic pub command std_msgs/String ANY_STRING_HERE".
@@ -37,19 +37,22 @@ Typewriter:
   - To exit, type "end" hit enter and hit Ctrl+c
   
 Draw
-  - run the launch file
+  - run the launch file with mode set to draw
   - Define the drawing plane as in Typewriter mode
   - type "pyramids" and hit enter to draw a picture of pyramids
   - type "maze" and hit enter to draw and solve a maze
   - To exit, type "end" hit enter and hit Ctrl+c
   
 RRT
-  - run the launch file
-  ....
+  - run the launch file with mode set to RRT
+  - move Baxter to the first desired point
+  - From the ros_ws directory, publish a message to the "user_input" topic containing any string. Enter: "rostopic pub command std_msgs/String ANY_STRING_HERE".
+  - move Baxter to the second desired point
+  - publish another string as above
   
 BIRRT
-  - run the launch file 
-  .....
+  - run the launch file with mode set to BIRRT
+  - repeat steps in RRT
   
 Notes:
   - Orienting the pen at 45 degrees for writing works best. 
