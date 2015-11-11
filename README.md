@@ -29,7 +29,7 @@ Typewriter:
   - run the launch file with mode set to typewriter
   - Define the drawing plane
     - place Baxter's arm such that the marker tip is touching the board
-    - From the ros_ws directory, publish a message to the "user_input" topic containing any string. Enter: "rostopic pub command std_msgs/String ANY_STRING_HERE".
+    - From the ros_ws directory, publish a message to the "user_input" topic containing any string. Enter: "rostopic pub command std_msgs/String 'ANY_STRING_HERE'".
     - Repeat at two other points
   - type any lowercase letter and hit enter
   - type "return" and hit enter to move to a new line
@@ -57,3 +57,9 @@ BIRRT
 Notes:
   - Orienting the pen at 45 degrees for writing works best. 
   - The control gain can be adjusted my changing kp in robot_interface.py
+
+Objective Function:
+  -An objective function is used to avoid joint limits and singularities. This function calculates the manipulability of a given configuration, and then uses a small angle step for each joint to calculate the change in manipulability for a small movement in each joint. If the manipulability increases a lot, a high magnitude, positive change in the objective function is observed. If the manipulability decreases a little, a low magnitude, negative change in the objective function is used. These changes in manipulability (definition of a derivative of manipulability) directly correspond to the b-value for the given joint. The b-vector is scaled to an appropriate magnitude in order that it keeps baxter manipulable within the workspace, but does not interfere with the pen velocity (although no choice in b should affect the pen velocity, commanding very high joint velocities does impact the smoothness of our lines).
+
+Smoothing:
+  - A smoothing function is used to evaluate the path created by our RRT. We start with the path we have chosen (array of configuration waypoints), and iterate through each index of that path. For each waypoint (let's say p1), we select a random waypoint (let's say p3) between the one we are testing and the goal (let's say p3). We attempt to connect those two points, and collision check. If no collision is found, we remove un-necessary waypoints (in this case, p2) and continue to iterate through this new path array. 
