@@ -232,8 +232,15 @@ def RRT_handler(data):
                 print len(nodes_RRT)
                 print "edges"
                 print edges_RRT
+        # full numpy array path
         path = determine_path(nodes_RRT, edges_RRT,-1)
+
+    # Smooth here
+    if path.size() > 2:
+        path = smooth_path(path,nodes_RRT,edges_RRT)
+
     new_path = numpy.array([])
+    #convert numpy path to service array
     for i in path:
         path_point = single_config()
         path_point.config = i
@@ -260,6 +267,25 @@ def RRT_handler(data):
         # add or dont add to tree (edge and node)
         # check if can see q_goal 
     return new_path
+def smooth_path(path, nodes, edges):
+    
+    i = 0
+    smoothed_path = path
+    while i < smoothed_path.size()-2
+        n = smoothed_path.size()
+        point = smoothed_path[i]
+        test_index = randint(i+2,n-1)
+        test_point = smoothed_path[test_index]
+        success, nodes, edges = line_to_point(stepSize,numpy.linalg.norm(test_point-point),0,point, test_point,0,nodes,edges)
+        if success:
+            smoothed_path = smoothed_path[0:i] 
+            smoothed_path.append(smoothed_path[test_index:n-1])
+        i = i+1
+    return smoothed_path
+
+
+
+
 
 def build_RRT():
     rospy.init_node('build_RRT')

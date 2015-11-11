@@ -176,7 +176,7 @@ def move_to_point(initial_point,point):
             b = numpy.array([s0_objective, s1_objective, e0_objective, e1_objective, w0_objective, w1_objective, w2_objective])
             b = b-initial_objective
             b = b/delta_q
-            b = b*.0000000001
+            b = b*.00001
 
 
 
@@ -184,22 +184,22 @@ def move_to_point(initial_point,point):
 
 
            
-            #q_dot = numpy.dot(J_psuinv,v_des) + numpy.dot((numpy.identity(7)-numpy.dot(J_psuinv,J)),numpy.transpose(b))
+            q_dot = numpy.dot(J_psuinv,v_des) + numpy.dot((numpy.identity(7)-numpy.dot(J_psuinv,J)),numpy.transpose(b))
             #print "first half"
             #print numpy.dot(J_psuinv,v_des)
             #print "second half"
             #print numpy.dot((numpy.identity(7)-numpy.dot(J_psuinv,J)),numpy.transpose(b))
-            #q_dot = q_dot.tolist()
-           # q_dot = q_dot[0]
+            q_dot = q_dot.tolist()
+            q_dot = q_dot[0]
             #print "qdot"
             #print q_dot
             
             # Previous lines are objective function
 
             # Following three commands are used when objective function is off
-            q_dot = numpy.dot(J_psuinv,v_des)
-            q_dot = q_dot.tolist()
-            q_dot = q_dot[0]
+            #q_dot = numpy.dot(J_psuinv,v_des)
+            #q_dot = q_dot.tolist()
+            #q_dot = q_dot[0]
             #print "q_dot"
             #print q_dot
 

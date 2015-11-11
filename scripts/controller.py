@@ -60,6 +60,32 @@ def controller():
 
         R = make_rotation_matrix(plane_normal)
 
+        request = rospy.ServiceProxy('connect_waypoints', connect_waypoints)
+        print "Draw mode. Type 'maze' or 'pyramids'."
+        done = False
+        while not done:
+            letter = raw_input()
+            if letter == 'end':
+                print "I'm done"
+                done = True
+            elif letter == 'maze':
+                data = maze()
+                pointc = draw_letter(data,scale_factor*2,R,pointc)
+                print "done drawing"
+            elif letter == 'pyramids':
+                data = pyramids()
+                pointc = draw_letter(data,scale_factor,R,pointc)
+                print "done drawing"
+                '''elif letter.isalpha():    
+                possibles = globals().copy()
+                possibles.update(locals())
+                method = possibles.get(letter)
+                data = method()
+                print data
+                pointc = draw_letter(data,scale_factor,R,pointc)
+                print "done drawing"'''
+            else:
+                print "Invalid input."
 
 
         # connect <0,0,0> and <.2,.2,0>
@@ -118,11 +144,47 @@ def controller():
         plane_normal = plane_vec/numpy.linalg.norm(plane_vec)
         R = make_rotation_matrix(plane_normal)
 
+        request = rospy.ServiceProxy('connect_waypoints', connect_waypoints)
         print "Typewriter mode. Enter letters one at a time."
+
         while not done:
             letter = raw_input()
             print letter
-            if letter == 'end':
+            if letter == 'return':
+                newline = numpy.array([-10,0,0])*scale_factor
+                newline = numpy.dot(R,newline)
+                pointc = first_point_c + newline
+                first_point_c = pointc
+                stroke = waypoints()
+                stroke.points.append(make_point_from_array(pointc))
+                go_to_stroke = move_between_strokes(stroke,R)
+                output = request(go_to_stroke)
+            elif letter == 'end':
+                print "I'm done"
+                done = True
+            elif letter == 'space':
+                newline = numpy.array([0,-10,0])*scale_factor
+                newline = numpy.dot(R,newline)
+                pointc = pointc + newline
+                stroke = waypoints()
+                stroke.points.append(make_point_from_array(pointc))
+                go_to_stroke = move_between_strokes(stroke,R)
+                output = request(go_to_stroke)
+            elif len(letter) == 1:
+                if letter.isalpha():    
+                    possibles = globals().copy()
+                    possibles.update(locals())
+                    method = possibles.get(letter)
+                    data = method()
+                    print data
+                    pointc = draw_letter(data,scale_factor,R,pointc)
+                    print "Enter next letter"
+                else:
+                    print "Invalid input. Enter single lowercase letter or empty line for new line."
+            else:
+                print "Invalid input. Enter single lowercase letter or empty line for new line."
+
+            '''if letter == 'end':
                 done == True
             elif letter == 'return':
             	pointc[0] = first_point_c[0]-10*scale_factor
@@ -134,7 +196,7 @@ def controller():
                 data = method()
                 print data
                 pointc = draw_letter(data,scale_factor,R,pointc)
-                print "Enter next letter"
+                print "Enter next letter" '''
 
 
     # time.sleep(10)
@@ -464,9 +526,9 @@ def z():
 	return s_1, s_2, p_end
 
 def maze():
-	s_1 = numpy.array([[7,-1,0],[7,-3,0],[9,-3,0],[9,-7,0],[3,-6,0],[3,-8,0]])
-	s_2 = numpy.array([[3,-4,0],[3,-6,0]])
-	s_3 = numpy.array([[1,-8,0],[1,-2,0],[5,-3,0],[5,-5,0],[7,-5,0]])
+	s_1 = numpy.array([[7,-1,0],[7,-3,0],[9,-3,0],[9,-7,0],[3,-7,0],[3,-9,0]])
+	s_2 = numpy.array([[3,-5,0],[3,-7,0]])
+	s_3 = numpy.array([[1,-9,0],[1,-3,0],[5,-3,0],[5,-5,0],[7,-5,0]])
 	s_4 = numpy.array([[5,-1,0],[5,-3,0]])
 	s_5 = numpy.array([[6,-1,0],[6,-2,0]])
 	s_6 = numpy.array([[6,-3,0],[6,-4,0]])
@@ -478,7 +540,7 @@ def maze():
 	s_12 = numpy.array([[3,-4,0],[2,-4,0]])
 	s_13 = numpy.array([[2,-5,0],[2,-6,0]])
 	s_14 = numpy.array([[2,-7,0],[2,-8,0]])
-	p_end = numpy.array([[1,-9,0]])
+	p_end = numpy.array([1,-9,0])
 	return s_1,s_2,s_3,s_4,s_5,s_6,s_7,s_8,s_9,s_10,s_11,s_12,s_13,s_14,p_end
 	
 def pyramids():
@@ -488,7 +550,7 @@ def pyramids():
 	s_4 = numpy.array([[2,-5,0],[6,-7,0]])
 	s_5 = numpy.array([[2,-11,0],[4,-13,0],[0,-17,0]])
 	s_6 = numpy.array([[1,-12,0],[4,-13,0]])
-	p_end = numpy.array([[1,-17,0]])
+	p_end = numpy.array([1,-17,0])
 	return s_1,s_2,s_3,s_4,s_5,s_6,p_end
 	
 	
